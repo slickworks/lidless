@@ -89,14 +89,15 @@ class Controller:
                 if remote_key in node_remotes:
                     remote_data = node_remotes[remote_key]
                     if remote_data or remote_data == {}:
-                        # dest = remote_data.get("dest", "")
-                        # dest = join_paths(parent_dest, dest)
+                        
+                        node_dest = node_data.get("dest")
+                        if node_dest:
+                            base_dest = join_paths(base_dest, node_dest)
                         collected_nodes.append(
                             self._get_node(
                                 node_path, base_dest, base_path, remote_data, node_data
                             )
                         )
-                        print(node_path, remote_data, len(collected_nodes))
                 self._get_nodes(
                     collected_nodes,
                     remote_key,

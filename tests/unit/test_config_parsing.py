@@ -121,15 +121,34 @@ class TestDestinations(TestBase):
         with pytest.raises(LidlessConfigError):
             self.get_nodes()
 
-    def test_single_root_uses_remote_base_dest(self):
+    def test_single_root_can_forego_dest(self):
         self.roots = {
             "/a": {"default": {}},
         }
-        node = self.get_nodes()[0]
+        node, = self.get_nodes()
         assert node.dest == self.default_dest
 
-    def test_path_override(self):
-        pass
+    def test_nested_node_gets_correct_dest(self):
+        self.roots = {
+            "/a": {
+                "/nested": {
+                    "default": {},
+                }
+            },
+        }
+        node, = self.get_nodes()
+        assert node.dest == join_paths(self.default_dest, "/nested")
 
-    def test_remote_override(self):
-        pass
+    def test_setting_dest_in_node(self):
+        self.roots = {
+            "/a": {
+                "dest": "foo",
+                "default": {},
+                "/nested": {
+                    "default": {},
+                }
+            },
+        }
+        node1, node2 = self.get_nodes()
+        assert node1.dest == join_paths(self.default_dest, "foo")
+        assert node2.dest == join_paths(self.default_dest, "foo", "/nested")
