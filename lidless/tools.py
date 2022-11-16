@@ -1,8 +1,8 @@
 import os
-from pydantic import BaseModel
+# from pydantic import BaseModel
 
 
-class BaseTool(BaseModel):
+class BaseTool():
 
     def diff(self, src, dest, exclude):
         cmd = self._diff_cmd(src, dest, exclude)

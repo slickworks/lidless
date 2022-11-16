@@ -28,7 +28,7 @@ class Change:
 
 class Target:
     """
-    A backup target
+    A backup target.
     """
 
     def __init__(self, config, name, tool, nodes) -> None:

@@ -262,6 +262,19 @@ The closest one will be used. You can use exclude_from and exclude together.
 
 ### Commands
 
+#### Target commands
+
+```
+tub [target] show
+tub [target] changes
+tub [target] backup
+tub [target] restore
+```
+
+#### Config commands
+
+
+
 * print/show tags
 * backup
 * restore

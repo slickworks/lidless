@@ -13,8 +13,8 @@ DEFAULT_CACHE_DIR = join(BASE, ".cache")
 
 
 class Controller:
-    config_file: str
-    cache_dir: str
+    # config_file: str
+    # cache_dir: str
 
     def __init__(
         self, config_file=DEFAULT_CONFIG_FILE, cache_dir=DEFAULT_CACHE_DIR, data=None
