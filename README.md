@@ -117,28 +117,28 @@ backup /project-1/code >> remote:projects/project-1/code
 
 This example acheives nothing other than issuing two commands instead of one, the result of which would be identical. 
 
-The point of nested paths is to override parent settings, most commonly: **labels**.
+The point of nested paths is to override parent settings, most commonly: **tags**.
 
-#### Labels
+#### tags
 
-You can add labels to paths, which lets you control which directories are included for which targets. Fex example:
+You can add tags to paths, which lets you control which directories are included for which targets. Fex example:
 
 ```json
 {
   "roots": {
     "/projects": {
-      "labels": ["cloud"],
+      "tags": ["cloud"],
       "dest": "projects",
     },
     "/home/andrew": {
-      "labels": ["cloud", "personal"],
+      "tags": ["cloud", "personal"],
       "dest": "home",
     }
   }
 }
 ```
 
-You can then tell targets which labels to include:
+You can then tell targets which tags to include:
 
 ```json
 {
@@ -146,12 +146,12 @@ You can then tell targets which labels to include:
     "my-hdd": {
       "tool": "rsync",
       "dest": "/mnt/ext-hd2",
-      "labels": ["personal"]
+      "tags": ["personal"]
     },
     "mega": {
       "tool": "rclone",
       "provider": "mega",
-      "labels": ["cloud"]
+      "tags": ["cloud"]
     }
   }
 }
@@ -159,20 +159,20 @@ You can then tell targets which labels to include:
 
 The target `mega` will include **/projects** and **/home/andrew** but the target `my-hdd` will only include **/home/andrew**.
 
-Note that labels are not inherited by nested directories. The rationale being that the primary reason for creating a nested directory is to change labels.
+Note that tags are not inherited by nested directories. The rationale being that the primary reason for creating a nested directory is to change tags.
 
-If a target does not specify labels, it will include all directories in roots, so be careful. It is usually safer to set default label in settings, which is applied to all directories which do not specify labels:
+If a target does not specify tags, it will include all directories in roots, so be careful. It is usually safer to set default label in settings, which is applied to all directories which do not specify tags:
 
 ```json
 {
   "defaults": {
-    "labels": ["cloud"]
+    "tags": ["cloud"]
   },
   "targets": {
     "mega": {
       "tool": "rclone",
       "provider": "mega",
-      "labels": ["cloud"]
+      "tags": ["cloud"]
     }
   }
 }
@@ -180,7 +180,7 @@ If a target does not specify labels, it will include all directories in roots, s
 
 #### Putting it all together
 
-Let's look at how default labels and nested directories interact to allow us to exclude a git repository from our backups, but include a nested directory inside it:
+Let's look at how default tags and nested directories interact to allow us to exclude a git repository from our backups, but include a nested directory inside it:
 
 ```json
 {
@@ -188,7 +188,7 @@ Let's look at how default labels and nested directories interact to allow us to 
     "/projects": {
       "dest": "projects",
         "/project-1/code": {
-          "labels": ["git"],
+          "tags": ["git"],
           "/settings": {}
         }
       }
@@ -199,13 +199,13 @@ Let's look at how default labels and nested directories interact to allow us to 
 
 This would result in the following logic:
 
-| dir                      | labels | dest                             |
-| ------------------------ | ------ | -------------------------------- |
-| /projects                | cloud  | projects                         |
-| /project-1/code          | git    | N/A                              |
-| /project-1/code/settings | cloud  | projects/project-1/code/settings |
+| dir                      | tags  | dest                             |
+| ------------------------ | ----- | -------------------------------- |
+| /projects                | cloud | projects                         |
+| /project-1/code          | git   | N/A                              |
+| /project-1/code/settings | cloud | projects/project-1/code/settings |
 
-Meaning that a target with labels "cloud" will ignore **/project-1/code** include **projects/project-1/code/settings**.
+Meaning that a target with tags "cloud" will ignore **/project-1/code** include **projects/project-1/code/settings**.
 
 When restoring, the repo will be excluded and untouched, so if you restore the repository from git first then your files will be unaffected. Restoring from git without affecting **settings** is a bit more tricky.
 
@@ -228,45 +228,44 @@ You can add exclude patterns like so:
   "roots": {
     "/projects": {
       "dest": "projects",
-        "exclude": [
-        	"tmp"
-        ]
-      }
+      "exclude": ["*.pyc"]
     }
   }
 }
 ```
 
-You can also set a default exclude_from. 
+You can also set an exclude_from in defaults, in a target, or a node.
 
 ```
 {
   "defaults": {
-    "exclude_from": "/path/to/file1"
+    "exclude_from": "path/to/file1"
   },
   "targets": {
     "mega": {
       "tool": "rclone",
       "provider": "mega",
-      "labels": ["cloud"],
-      "exclude_from": "/path/to/file2"
+      "tags": ["cloud"],
+      "exclude_from": "path/to/file2"
+    }
+  },
+  "roots": {
+    "/projects": {
+      "dest": "projects",
+      "exclude_from": "path/to/file3"
     }
   }
 }
 ```
 
-
-
-
+The closest one will be used. You can use exclude_from and exclude together.
 
 ### Commands
 
-* print/show labels
+* print/show tags
 * backup
 * restore
 * check
-
-
 
 ```json
 {

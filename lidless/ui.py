@@ -1,8 +1,8 @@
 import sys
-from lidless.models import Remote
+from lidless.models import Target
 
-def accept_changes(remote: Remote):
-    print(remote.changes)
+def accept_changes(target):
+    print(target.changes)
 
 
 def error(msg):

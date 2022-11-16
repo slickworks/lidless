@@ -26,9 +26,9 @@ class Change:
     action: str
 
 
-class Remote:
+class Target:
     """
-    A remote location to which files are backed up.
+    A backup target
     """
 
     def __init__(self, config, name, tool, nodes) -> None:
