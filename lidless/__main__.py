@@ -5,19 +5,17 @@ The entry point. You probably want to:
 
 """
 from argparse import ArgumentParser
-from lidless.commands import backup, changes, config, restore, show
-
-
-TARGET_CMDS = {
-    "show": show,
-    "changes": changes,
-    "backup": backup,
-    "restore": restore,
-}
+from lidless.config import Config
+from lidless.controller import Controller
+from lidless.exceptions import UserError
+from lidless.ui import error
 
 
 def main():
-    parser = ArgumentParser(prog = "<your-alias>")
+    config = Config()
+    controller = Controller(config)
+
+    parser = ArgumentParser(prog="<your-alias>")
     parser.set_defaults(func=lambda _: parser.print_usage())
     subparsers = parser.add_subparsers()
 
@@ -29,14 +27,19 @@ def main():
         sub_parser.set_defaults(func=func)
         return sub_parser
 
-    config_parser = add_sub_parser(config, "config", [])
+    # config_parser = add_sub_parser(controller.cmd_config, "config", [])
     # TODO: add options for setting tags on cwd etc.
 
-    for name, func in TARGET_CMDS.items():
-        add_sub_parser(func, name, [target_parser])
+    for cmd_name in controller.target_cmds:
+        func = getattr(controller, cmd_name)
+        add_sub_parser(func, cmd_name[4:], [target_parser])
 
     args = parser.parse_args()
-    args.func(args)
+
+    try:
+        args.func(args)
+    except UserError as err:
+        error(err)
 
 
 if __name__ == "__main__":

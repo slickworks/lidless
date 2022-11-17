@@ -1,24 +1,22 @@
-from lidless.exceptions import LidlessConfigError
+from collections import defaultdict
+from lidless.exceptions import DuplicateDestinationsError
 from lidless.models import Node
-from lidless.utils import join_paths, find_duplicates
+from lidless.utils import join_paths
 
 
 class NodeCollector:
-
-    def __init__(self, roots, base_dest='', collect_tags=None, default_tags=None):
+    def __init__(self, roots, base_dest="", collect_tags=None, default_tags=None):
         self.collect_tags = collect_tags
         self.default_tags = default_tags
         self.roots = roots
         self.base_dest = base_dest
-        self.collected_nodes = []
+        self._nodes = []
 
     def get_nodes(self):
-        self.collected_nodes = []
+        self._nodes = []
         self._collect(self.roots, self.base_dest)
-        duplicate_dests = find_duplicates([node.dest for node in self.collected_nodes])
-        if duplicate_dests:
-            raise LidlessConfigError("\n".join(duplicate_dests))
-        return self.collected_nodes
+        self._find_duplicate_destinations()
+        return self._nodes
 
     def _collect(
         self,
@@ -38,10 +36,8 @@ class NodeCollector:
                     node_dest = node_data.get("dest")
                     if node_dest:
                         base_dest = join_paths(base_dest, node_dest)
-                    self.collected_nodes.append(
-                        self._get_node(
-                            node_path, base_dest, base_path, node_data
-                        )
+                    self._nodes.append(
+                        self._get_node(node_path, base_dest, base_path, node_data)
                     )
                 self._collect(
                     node_data,
@@ -63,7 +59,7 @@ class NodeCollector:
         return node_data.get("tags", self.default_tags or [])
 
     def _get_node(self, node_path, base_dest, base_path, node_data):
-        
+
         return Node(
             config=self,
             path=node_path,
@@ -83,6 +79,22 @@ class NodeCollector:
         cut = len(base_path)
         rel = node_path[cut:]
         return join_paths(base_dest, rel).rstrip("/")
+
+    def _find_duplicate_destinations(self):
+        """
+        Raises an error if nodes are found with duplicate destinations.
+        """
+        node_dests = defaultdict(list)
+        for node in self._nodes:
+            node_dests[node.dest].append(node.path)
+
+        duplicates = {}
+        for dest, paths in node_dests.items():
+            if len(paths) > 1:
+                duplicates[dest] = paths
+
+        if duplicates:
+            raise DuplicateDestinationsError(duplicates)
 
 
 def collect_nodes(roots, base_dest, target_tags, default_tags):

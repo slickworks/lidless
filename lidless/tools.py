@@ -1,9 +1,11 @@
 import os
-# from pydantic import BaseModel
+from pydantic import BaseModel
+
+from dataclasses import dataclass
 
 
-class BaseTool():
-
+@dataclass
+class BaseTool:
     def diff(self, src, dest, exclude):
         cmd = self._diff_cmd(src, dest, exclude)
         print(cmd)
@@ -22,9 +24,9 @@ class BaseTool():
         return f"{type(self).__name__}:{os.linesep}{super().__str__()}"
 
 
+@dataclass
 class Rsync(BaseTool):
     diff_cmd = "rsync {src} {dest} -r --delete-after --exclude-from {exclude}"
-    dest: str
 
     def sync(self, src, dest, exclude):
         safe_target = os.environ.get("LIDLESS_SYNC_SAFE_TARGET", "")
@@ -33,9 +35,9 @@ class Rsync(BaseTool):
         super().sync(src, dest, exclude)
 
 
+@dataclass
 class Rclone(BaseTool):
     diff_cmd = "rclone sync {src} {provider}:{dest} --exclude-from {exclude}"
-    dest: str
     provider: str
 
 
@@ -45,7 +47,9 @@ config = {
 }
 
 
-def get_tool(name, remote_data) -> BaseTool:
-    name = remote_data["tool"]
-    cls = config[name]
-    return cls(**remote_data)
+def get_tool(**target_data) -> BaseTool:
+    key = target_data["tool"]
+    cls = config[key]
+    return cls()
+    # TODO: determine required args from cls and extract.
+    # **target_data)

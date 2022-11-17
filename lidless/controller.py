@@ -1,67 +1,65 @@
-from os.path import expanduser, dirname, join, exists
-import json
-
-from lidless.exceptions import LidlessConfigError
-from lidless.models import Node, Target
-from lidless.tools import get_tool
-from lidless.utils import join_paths, find_duplicates
-from lidless.collect import collect_nodes
-
-BASE = dirname(dirname(dirname(__file__)))  # TODO: change!
-DEFAULT_CONFIG_FILE = join(BASE, "backup.config.json")
-DEFAULT_CACHE_DIR = join(BASE, ".cache")
+from lidless.config import Config
 
 
 class Controller:
-    # config_file: str
-    # cache_dir: str
 
-    def __init__(
-        self, config_file=DEFAULT_CONFIG_FILE, cache_dir=DEFAULT_CACHE_DIR, data=None
-    ) -> None:
-        self.config_file = expanduser(config_file)
-        self.cache_dir = expanduser(cache_dir)
-        self.__data = data or {}
+    target_cmds = [
+        "cmd_show",
+        "cmd_changes",
+        "cmd_backup",
+        "cmd_restore",
+    ]
 
-    @property
-    def data(self):
-        self._load()
-        return self.__data
+    def __init__(self, config: Config) -> None:
+        self.config = config
 
-    def _load(self):
-        if not len(self.__data):
-            if exists(self.config_file):
-                with open(self.config_file) as fp:
-                    self.__data = json.load(fp)
-            else:
-                self.__data = {"nodes": {}, "exclude": [], "targets": {}}
+    def cmd_config(self, args):
+        """
+        Handle configure options
+        """
 
-    def get_target(self, target_key):
-        roots = self.data["roots"]
-        default_tags = self.data["settings"].get("default_tags", [])
-        target_data = self.data["targets"][target_key]
-        base_dest = target_data.get("dest", "")
-        target_tags = target_data["tags"]
-        return Target(
-            config=self,
-            name=target_key,
-            tool=get_tool(target_key, target_data),
-            nodes=collect_nodes(roots, base_dest, target_tags, default_tags),
-        )
+    def cmd_show(self, args):
+        """
+        Shows collection data.
+        """
+        self._run_tool_func(args.target, "show", args)
 
-    # def get_exclude_file(self, path, exclude):
-    #     pass
+    def cmd_changes(self, args):
+        """
+        Shows changes.
+        """
 
-    # def _save(self):
-    #     with open(self.config_file, "w") as fp:
-    #         json.dump(self.__data, fp, indent=4)
+    def cmd_backup(self, args):
+        """
+        Runs backup.
+        """
 
-    # def add_target(self, name, cmd):
-    #     self.data["targets"][name] = {"cmd": cmd}
-    #     self._save()
+    def cmd_restore(self, args):
+        """
+        Runs restore.
+        """
 
-    # def add_node(self, path):
-    #     pass
+    def _run_tool_func(self, target_key, func, args):
+        target, nodes = self.config.get_target_and_nodes(target_key)
+        call = getattr(target.tool, func)
+        for node in nodes:
+            call(node)
 
-    # def add_repo(self, path):
+
+
+        # def get_exclude_file(self, path, exclude):
+        #     pass
+
+        # def _save(self):
+        #     with open(self.config_file, "w") as fp:
+        #         json.dump(self.__data, fp, indent=4)
+
+        # def add_target(self, name, cmd):
+        #     self.data["targets"][name] = {"cmd": cmd}
+        #     self._save()
+
+        # def add_node(self, path):
+        #     pass
+
+        # def add_repo(self, path):
         pass

@@ -1,5 +1,6 @@
 import os
 
+
 def join_paths(*paths):
     """Safely join paths which may omit slashes."""
     first = paths[0]

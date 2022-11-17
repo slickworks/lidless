@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 from typing import TYPE_CHECKING
+from lidless.tools import BaseTool
+
 if TYPE_CHECKING:
     from config import Config
 
@@ -22,21 +24,29 @@ class Change:
     """
     Describes a change between a node and a remote.
     """
+
     path: str
     action: str
 
 
+@dataclass
 class Target:
     """
     A backup target.
     """
+    name: str
+    dest: str
+    tags: list[str]
+    tool: BaseTool
 
-    def __init__(self, config, name, tool, nodes) -> None:
-        self.config = config
-        self.name = name
-        self.tool = tool
-        self.nodes = nodes
-        self.changes = []
+
+    # exclude: list[str]
+
+    # def __init__(self, config, name, tool, nodes) -> None:
+    #     self.config = config
+    #     self.name = name
+    #     self.tool = tool
+    #     self.changes = []
 
     def find_changes(self) -> None:
         for node in self.nodes:
@@ -50,5 +60,3 @@ class Target:
     def _add_changes(self, path, exclude_file):
         changes = self.tool.diff(path, exclude_file)
         self.changes.extend(changes)
-
-
