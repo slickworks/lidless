@@ -1,6 +1,6 @@
 import pytest
 from lidless.utils import join_paths
-from lidless import LidlessConfigError
+from lidless import DuplicateDestinationsError
 from .base import BaseWithTarget
 
 
@@ -10,7 +10,7 @@ class TestDestinations(BaseWithTarget):
             "/a": {"tags": [self.target_tag]},
             "/b": {"tags": [self.target_tag]},
         }
-        with pytest.raises(LidlessConfigError):
+        with pytest.raises(DuplicateDestinationsError):
             self.get_nodes(self.target_key)
 
     def test_single_root_can_forego_dest(self):

@@ -1,11 +1,15 @@
 import os
-from pydantic import BaseModel
 
 from dataclasses import dataclass
+from lidless.exceptions import DataclassInitErr
 
 
 @dataclass
 class BaseTool:
+    """
+    Subclasses must implement public methods using same signatures.
+    Subclasses may specify additional dataclass fields.
+    """
     def diff(self, src, dest, exclude):
         cmd = self._diff_cmd(src, dest, exclude)
         print(cmd)
@@ -26,7 +30,8 @@ class BaseTool:
 
 @dataclass
 class Rsync(BaseTool):
-    diff_cmd = "rsync {src} {dest} -r --delete-after --exclude-from {exclude}"
+    dest: str = ''
+    diff_cmd: str = "rsync {src} {dest} -r --delete-after --exclude-from {exclude}"
 
     def sync(self, src, dest, exclude):
         safe_target = os.environ.get("LIDLESS_SYNC_SAFE_TARGET", "")
@@ -47,9 +52,15 @@ config = {
 }
 
 
-def get_tool(**target_data) -> BaseTool:
-    key = target_data["tool"]
+def get_tool(data: dict) -> BaseTool:
+    try:
+        key = data.pop("tool")
+    except KeyError:
+        raise
     cls = config[key]
-    return cls()
+    try:
+        return cls(*data)
+    except TypeError as err:
+        raise DataclassInitErr(key, err)
     # TODO: determine required args from cls and extract.
     # **target_data)

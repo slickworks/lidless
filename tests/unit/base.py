@@ -1,5 +1,5 @@
 from tests.base import CONFIG_FILE, CACHE_DIR, DEST_DIR
-from lidless import Controller
+from lidless import Config, Controller
 
 
 class TestBase:
@@ -18,21 +18,23 @@ class TestBase:
         return target
 
     def get_config(self):
-        return {
+        data = {
             "roots": self.roots,
             "settings": self.settings,
             "targets": self.targets,
         }
+        return Config(CONFIG_FILE, CACHE_DIR, data)
 
     def get_controller(self):
         config = self.get_config()
-        return Controller(CONFIG_FILE, CACHE_DIR, config)
+        return Controller(config)
 
     def get_target(self, key):
-        return self.get_controller().get_target(key)
+        return self.get_config().get_target(key)
 
     def get_nodes(self, key):
-        return self.get_target(key).nodes
+        target, nodes = self.get_config().get_target_and_nodes(key)
+        return nodes
 
 
 class BaseWithTarget(TestBase):

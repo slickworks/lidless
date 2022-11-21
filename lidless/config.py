@@ -1,10 +1,9 @@
-
 from os.path import expanduser, dirname, join, exists
 import json
 from lidless import ui
 from lidless.collect import collect_nodes
-from lidless.exceptions import LidlessConfigError
-from lidless.models import Target
+from lidless.exceptions import UserError
+from lidless.target import Target
 from lidless.tools import get_tool
 
 
@@ -44,17 +43,16 @@ class Config:
 
     def get_target(self, target_key):
         try:
-            target_data = self.targets[target_key]
+            data = self.targets[target_key]
         except KeyError:
             valid_keys = ", ".join(self.targets.keys())
-            #TODO: raise exception instead
-            ui.error(f"Invalid target '{target_key}' - must be one of [{valid_keys}]")
+            raise UserError(f"Invalid target '{target_key}' - must be one of [{valid_keys}]")
 
         return Target(
             name=target_key,
-            tags=target_data.get("tags", []),
-            dest=target_data.get("dest", ""),
-            tool=get_tool(**target_data)
+            tags=data.pop("tags", []),
+            dest=data.pop("dest", ""),
+            tool=get_tool(data)
         )
 
     def get_nodes(self, tags, base_dest):

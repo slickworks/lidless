@@ -41,7 +41,7 @@ class Controller:
 
     def _run_tool_func(self, target_key, func, args):
         target, nodes = self.config.get_target_and_nodes(target_key)
-        call = getattr(target.tool, func)
+        call = getattr(target, func)
         for node in nodes:
             call(node)
 
