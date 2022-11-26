@@ -9,7 +9,7 @@ class TestParsing(TestBase):
 
     def test_target_names_are_valid(self):
         self.targets["!foo"] = {}
-        self.get_controller()
+        self.get_config()
 
     def test_targets_have_required_keys(self):
         pass

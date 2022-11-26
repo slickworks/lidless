@@ -1,5 +1,5 @@
 import sys
-from lidless.target import Target
+from lidless.models import Target
 
 
 def accept_changes(target):

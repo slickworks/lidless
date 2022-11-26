@@ -1,4 +1,3 @@
 from .config import Config
-from .controller import Controller
-from .target import Target
+from .models import Target, Node, Change
 from .exceptions import LidlessConfigError, DuplicateDestinationsError
