@@ -50,6 +50,9 @@ class Config:
         with open(self.config_file, "w") as fp:
             return json.dump(self._data, fp)
 
+    def target_keys(self):
+        return list(self._data["targets"].keys())
+
     def get_target(self, target_key, with_nodes=True):
         try:
             data = self.targets[target_key]

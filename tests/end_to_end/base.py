@@ -3,6 +3,7 @@ import glob
 import shutil
 import subprocess
 
+from lidless import Config
 from lidless.utils import join_paths, create_file, create_dir
 from tests.base import BaseAll, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
 
@@ -37,15 +38,9 @@ class BaseEndToEnd(BaseAll, DirUtils):
         super().setup_method()
         os.makedirs(TMP_DIR, exist_ok=True)
 
-    def save_config(self, check=True):
+    def save_config(self):
         config = self.get_config()
-        if check:
-            for node in config.get_nodes():
-                if not node.path.startswith(SRC_DIR):
-                    raise AssertionError(f"Node in config does not start with {SRC_DIR}:\
-                        {os.linesep}    {node.path}")
         config.save()
-            
 
     def teardown_method(self):
         shutil.rmtree(TMP_DIR)
@@ -59,9 +54,28 @@ class BaseEndToEnd(BaseAll, DirUtils):
     def assert_dest(self, file_list_str):
         assert self.read_dir_contents(DEST_DIR) == self.clean_lines(file_list_str)
 
-    def call(self, command):
+    def safety_check(self):
+        """
+        Checks the config as it will be loaded by command and ensures all collected
+        directories are in TMP dir.
+        """
+        config = Config()
+        def ensure(node, att, correct):
+            value = getattr(node, att)
+            if not value.startswith(correct):
+                raise AssertionError(f"Node {att} does not start with {correct}:\
+                    {os.linesep}    {value}")
+        for target_key in config.target_keys():
+            target = config.get_target(target_key)
+            for node in target.nodes:
+                ensure(node, "path", SRC_DIR)
+                ensure(node, "dest", DEST_DIR)
+
+    def call(self, command, check=True):
         """Calls lidless and returns output as list of strings."""
-        os.chdir(ROOT) 
+        os.chdir(ROOT)
+        if check:
+            self.safety_check()
         command = f"python -m lidless {command}"
         out = subprocess.getoutput(command)
         return out.split(os.linesep)
