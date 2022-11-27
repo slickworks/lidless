@@ -2,7 +2,6 @@ from .base import BaseWithTarget
 
 
 class TestPathCollection(BaseWithTarget):
-
     def test_no_roots_yields_no_roots(self):
         self.roots = {}
         assert not self.get_nodes(self.target_key)
@@ -12,7 +11,7 @@ class TestPathCollection(BaseWithTarget):
             "a": {},
         }
         assert not self.get_nodes(self.target_key)
-    
+
     def test_only_roots_with_tag_are_collected(self):
         self.roots = {
             "/a": {"dest": "a", "tags": ["other"]},
@@ -31,7 +30,7 @@ class TestPathCollection(BaseWithTarget):
                 "tags": [self.target_tag],
                 "/nested": {
                     "tags": [self.target_tag],
-                }
+                },
             }
         }
         node1, node2 = self.get_nodes(self.target_key)
@@ -46,7 +45,7 @@ class TestPathCollection(BaseWithTarget):
                 }
             }
         }
-        node, = self.get_nodes(self.target_key)
+        (node,) = self.get_nodes(self.target_key)
         assert node.path == "/a/nested"
 
     def test_nested_node_not_collected_under_invalid_parent(self):
@@ -69,17 +68,14 @@ class TestPathCollection(BaseWithTarget):
                 }
             }
         }
-        node, = self.get_nodes(self.target_key)
+        (node,) = self.get_nodes(self.target_key)
         assert node.path == "/a/nested"
 
 
 class TestPathCollectionWithDefaultTags(BaseWithTarget):
-
     def setup_method(self):
         super().setup_method()
-        self.settings = {
-            "default_tags": [self.target_tag]
-        }
+        self.settings = {"default_tags": [self.target_tag]}
 
     # def test_only_roots_with_tag_are_collected(self):
     #     self.roots = {

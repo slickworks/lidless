@@ -1,11 +1,10 @@
-from .base import TestBase
+from .base import BaseAll
 
 
-class TestParsing(TestBase):
-
+class TestParsing(BaseAll):
     def test_config_has_expected_entries(self):
         pass
-        #test they are of correct types
+        # test they are of correct types
 
     def test_target_names_are_valid(self):
         self.targets["!foo"] = {}

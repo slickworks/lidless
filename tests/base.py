@@ -1,8 +1,9 @@
 from os.path import dirname, join
-import unittest
+from lidless import Config
 
 
 TMP_DIR = join(dirname(__file__), "tmp")
+ROOT = dirname(dirname(__file__))
 CONFIG_FILE = join(TMP_DIR, "config.json")
 CACHE_DIR = join(TMP_DIR, "cache")
 SRC_DIR = join(TMP_DIR, "src")
@@ -10,29 +11,32 @@ DEST_DIR = join(TMP_DIR, "dest")
 REMOTE = "test"
 
 
+class BaseAll:
+    """
+    Base class for all tests.
+    """
 
-# class TestBase(unittest.TestCase):
-#     nodes = {
-#         SRC_DIR: {
-#             "remotes": {
-#                 REMOTE: {}
-#             }
-#         }
-#     }
-#     remotes = {
-#         REMOTE: {
-#             "tool": "rsync",
-#             "dest": DEST_DIR
-#         }
-#     }
+    def setup_method(self):
+        self.roots = {}
+        self.targets = {}
+        self.settings = {}
+        self.default_dest = DEST_DIR
 
-#     def setUp(self):
-#         self.config = {"remotes": self.remotes, "nodes": self.nodes}
-#         self.ctrl = Controller(CONFIG_FILE, CACHE_DIR, self.config)
+    def create_target(self, **kwargs):
+        target = {"tool": "rsync", "dest": self.default_dest}
+        target.update(kwargs)
+        return target
 
-#     def getConfigSrcDir(self) -> dict:
-#         return self.ctrl.data["nodes"][SRC_DIR]
+    def get_config(self):
+        data = {
+            "roots": self.roots,
+            "settings": self.settings,
+            "targets": self.targets,
+        }
+        return Config(CONFIG_FILE, CACHE_DIR, data)
 
-#     def getConfigRemote(self) -> dict:
-#         return self.ctrl.data["remotes"][REMOTE]
-    
+    def get_target(self, key):
+        return self.get_config().get_target(key)
+
+    def get_nodes(self, key):
+        return self.get_target(key).nodes

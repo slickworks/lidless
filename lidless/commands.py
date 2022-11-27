@@ -33,12 +33,13 @@ class ConfigCommand(BaseCommand):
     cmd_help = "Do config stuff"
 
 
-class TargetCommand(BaseCommand):
+class BaseTargetCommand(BaseCommand):
+    """Base for commands which run against targets."""
     def add_arguments(self, parser):
         parser.add_argument("target", help="Name of target")
 
 
-class BackupCommand(TargetCommand):
+class BackupCommand(BaseTargetCommand):
     cmd_name = "backup"
     cmd_help = "Runs backup"
 
@@ -61,7 +62,7 @@ show changes backup restore.
 """
 
 
-class ResotoreCommand(TargetCommand):
+class RestoreCommand(BaseTargetCommand):
     cmd_name = "restore"
     cmd_help = "Runs restores"
 
@@ -69,5 +70,5 @@ class ResotoreCommand(TargetCommand):
 commands = [
     ConfigCommand,
     BackupCommand,
-    ResotoreCommand,
+    RestoreCommand,
 ]

@@ -17,18 +17,14 @@ class TestDestinations(BaseWithTarget):
         self.roots = {
             "/a": {"tags": [self.target_tag]},
         }
-        node, = self.get_nodes(self.target_key)
+        (node,) = self.get_nodes(self.target_key)
         assert node.dest == self.default_dest
 
     def test_nested_node_gets_correct_dest(self):
         self.roots = {
-            "/a": {
-                "/nested": {
-                    "tags": [self.target_tag]
-                }
-            },
+            "/a": {"/nested": {"tags": [self.target_tag]}},
         }
-        node, = self.get_nodes(self.target_key)
+        (node,) = self.get_nodes(self.target_key)
         assert node.dest == join_paths(self.default_dest, "/nested")
 
     def test_setting_dest_in_root(self):
@@ -36,9 +32,7 @@ class TestDestinations(BaseWithTarget):
             "/a": {
                 "dest": "foo",
                 "tags": [self.target_tag],
-                "/nested": {
-                    "tags": [self.target_tag]
-                }
+                "/nested": {"tags": [self.target_tag]},
             },
         }
         node1, node2 = self.get_nodes(self.target_key)
@@ -50,10 +44,7 @@ class TestDestinations(BaseWithTarget):
             "/a": {
                 "dest": "foo",
                 "tags": [self.target_tag],
-                "/nested": {
-                    "dest": "bar",
-                    "tags": [self.target_tag]
-                }
+                "/nested": {"dest": "bar", "tags": [self.target_tag]},
             },
         }
         node1, node2 = self.get_nodes(self.target_key)

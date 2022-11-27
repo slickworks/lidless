@@ -20,7 +20,7 @@ Lidless is a simple tool that lets you do all that.
 
 ### Installation
 
-Run the installation script. 
+Run the installation script (not working yet)
 
 You will need to create your own aliases, for which I highly recommend turboshell.
 
@@ -260,15 +260,16 @@ You can also set an exclude_from in defaults, in a target, or a node.
 
 The closest one will be used. You can use exclude_from and exclude together.
 
-### Commands
+## Commands
 
-#### Target commands
+### Target commands
+
+#### Backup
 
 ```
-tub [target] show
-tub [target] changes
-tub [target] backup
-tub [target] restore
+python -m lidless show [target]
+python -m lidless backup [target]
+python -m lidless restore [target]
 ```
 
 #### Config commands
