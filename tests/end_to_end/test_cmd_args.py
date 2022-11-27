@@ -1,11 +1,13 @@
+import pprint
 from .base import BaseEndToEnd
 
 
 class TestCmdArgs(BaseEndToEnd):
     def assert_displays_help(self, cmd):
         output = self.call(cmd)
-        print(output)
-        assert output[0].startswith("usage:")
+        if not output[0].startswith("usage:"):
+            lines = pprint.pformat(output)
+            raise AssertionError(f"Output did not display help: {lines}")
         return output
     
     def test_with_help(self):
@@ -21,4 +23,3 @@ class TestCmdArgs(BaseEndToEnd):
     def test_with_target_cmd_with_missing_target(self):
         output = self.assert_displays_help("backup")
         assert "the following arguments are required: target" in output[1]
-    

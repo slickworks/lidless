@@ -29,13 +29,18 @@ class BaseAll:
         target.update(kwargs)
         return target
 
+    def create_root(self, path, data=None):
+        path = join(SRC_DIR, path)
+        data = data or {}
+        return {path: data}
+
     def get_config(self):
         data = {
             "roots": self.roots,
             "settings": self.settings,
             "targets": self.targets,
         }
-        # user_dir will be set by env
+        # user_dir will be set by env var
         return Config(user_dir=None, data=data)
 
     def get_target(self, key):

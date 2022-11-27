@@ -1,7 +1,7 @@
-from .base import BaseEndToEnd
+from .base import BaseEndToEndWithTarget
 
 
-class TestBackup(BaseEndToEnd):
+class TestBackup(BaseEndToEndWithTarget):
     def test_show(self):
         files = """
         foo
@@ -9,6 +9,7 @@ class TestBackup(BaseEndToEnd):
         foo/foo.txt
         """
         self.create_src_dir(files)
-        # self.assert_dest(files)
-        print(self.call("ls -al"))
-        # self.call("show {self.target}")
+        self.roots.update(self.create_root("foo", data={"tags": [self.target_tag]}))
+        self.save_config()
+        output = self.call(f"backup {self.target_key}")
+        print(output)

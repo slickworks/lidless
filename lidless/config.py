@@ -38,14 +38,13 @@ class Config:
             with open(self.config_file) as fp:
                 return json.load(fp)
         else:
-            return {"nodes": {}, "exclude": [], "targets": {}}
+            return {"roots": {}, "settings": [], "targets": {}}
 
     def _validate(self):
-        for key in ["roots", "targets", "roots"]:
+        for key in ["roots", "targets", "settings"]:
             if key not in self._data:
                 data = pprint.pformat(self._data)
                 raise LidlessConfigError(f"Expected key {key} in config {os.linesep}{data}")
-
 
     def save(self):
         with open(self.config_file, "w") as fp:
@@ -72,7 +71,7 @@ class Config:
             nodes=nodes
         )
 
-    def get_nodes(self, tags, base_dest):
+    def get_nodes(self, tags=None, base_dest=""):
         roots = self.roots
         default_tags = self.settings.get("default_tags", [])
         return collect_nodes(roots, base_dest, tags, default_tags)

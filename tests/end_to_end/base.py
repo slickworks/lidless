@@ -4,11 +4,7 @@ import shutil
 import subprocess
 
 from lidless.utils import join_paths, create_file, create_dir
-from tests.base import BaseAll,CONFIG_FILE, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
-
-
-def local(path):
-    return join(TMP_DIR, path)
+from tests.base import BaseAll, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
 
 
 class DirUtils:
@@ -36,12 +32,20 @@ class DirUtils:
 
 
 class BaseEndToEnd(BaseAll, DirUtils):
+
     def setup_method(self):
         super().setup_method()
         os.makedirs(TMP_DIR, exist_ok=True)
-        self.get_config().save()
-        # with open(CONFIG_FILE, "w") as fp:
-        #     json.dump(self.get_config(), fp)
+
+    def save_config(self, check=True):
+        config = self.get_config()
+        if check:
+            for node in config.get_nodes():
+                if not node.path.startswith(SRC_DIR):
+                    raise AssertionError(f"Node in config does not start with {SRC_DIR}:\
+                        {os.linesep}    {node.path}")
+        config.save()
+            
 
     def teardown_method(self):
         shutil.rmtree(TMP_DIR)
@@ -61,3 +65,16 @@ class BaseEndToEnd(BaseAll, DirUtils):
         command = f"python -m lidless {command}"
         out = subprocess.getoutput(command)
         return out.split(os.linesep)
+
+
+
+class BaseEndToEndWithTarget(BaseEndToEnd):
+    """
+    Remember to self.save_config() before self.call()
+    """
+    target_key = "ext"
+    target_tag = "foo"
+
+    def setup_method(self):
+        super().setup_method()
+        self.targets[self.target_key] = self.create_target(tags=[self.target_tag])

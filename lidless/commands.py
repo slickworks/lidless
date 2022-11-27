@@ -47,9 +47,11 @@ class BackupCommand(BaseTargetCommand):
         target_key = args.target
         target = self.config.get_target(target_key)
         tool = target.tool
-        for node in target.nodes:
-            tool.backup(node.path, node.dest, node.exclude)
-
+        if target.nodes:
+            for node in target.nodes:
+                tool.backup(node.path, node.dest, node.exclude)
+        else:
+            print("No nodes collected.")
         # for key in remote_keys:
         #     remote = self.config.get_remote(key)
         #     remote.find_changes()
