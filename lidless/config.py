@@ -1,22 +1,32 @@
-from os.path import expanduser, dirname, join, exists
+import os
+from os.path import expanduser, join, exists
 import json
+import pprint
+
 from lidless.collect import collect_nodes
-from lidless.exceptions import UserError
+from lidless.exceptions import UserError, LidlessConfigError
 from lidless.models import Target
 from lidless.tools import get_tool
 
+LIDLESS_USER_DIR_ENV = "LIDLESS_USER_DIR"
 
-BASE = dirname(dirname(dirname(__file__)))  # TODO: change!
-DEFAULT_CONFIG_FILE = join(BASE, "backup.config.json")
-DEFAULT_CACHE_DIR = join(BASE, ".cache")
+
+def get_user_dir(user_dir=None):
+    if not user_dir:
+        try:
+            user_dir = os.environ[LIDLESS_USER_DIR_ENV]
+        except KeyError:
+            raise LidlessConfigError(f"You must set {LIDLESS_USER_DIR_ENV} env var")
+    return expanduser(user_dir)
 
 
 class Config:
     def __init__(
-        self, config_file=DEFAULT_CONFIG_FILE, cache_dir=DEFAULT_CACHE_DIR, data=None
+        self, user_dir=None, data=None
     ) -> None:
-        self.config_file = expanduser(config_file)
-        self.cache_dir = expanduser(cache_dir)
+        user_dir = get_user_dir(user_dir)
+        self.config_file = join(user_dir, "config.json")
+        self.cache_dir = join(user_dir, "cache")
         self._data = data or self._load()
         self._validate()
         self.roots = self._data["roots"]
@@ -31,7 +41,15 @@ class Config:
             return {"nodes": {}, "exclude": [], "targets": {}}
 
     def _validate(self):
-        pass
+        for key in ["roots", "targets", "roots"]:
+            if key not in self._data:
+                data = pprint.pformat(self._data)
+                raise LidlessConfigError(f"Expected key {key} in config {os.linesep}{data}")
+
+
+    def save(self):
+        with open(self.config_file, "w") as fp:
+            return json.dump(self._data, fp)
 
     def get_target(self, target_key, with_nodes=True):
         try:

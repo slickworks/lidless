@@ -4,7 +4,7 @@ import shutil
 import subprocess
 
 from lidless.utils import join_paths, create_file, create_dir
-from tests.base import BaseAll, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
+from tests.base import BaseAll,CONFIG_FILE, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
 
 
 def local(path):
@@ -39,6 +39,9 @@ class BaseEndToEnd(BaseAll, DirUtils):
     def setup_method(self):
         super().setup_method()
         os.makedirs(TMP_DIR, exist_ok=True)
+        self.get_config().save()
+        # with open(CONFIG_FILE, "w") as fp:
+        #     json.dump(self.get_config(), fp)
 
     def teardown_method(self):
         shutil.rmtree(TMP_DIR)

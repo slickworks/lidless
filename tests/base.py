@@ -1,6 +1,6 @@
+import os
 from os.path import dirname, join
 from lidless import Config
-
 
 TMP_DIR = join(dirname(__file__), "tmp")
 ROOT = dirname(dirname(__file__))
@@ -9,6 +9,8 @@ CACHE_DIR = join(TMP_DIR, "cache")
 SRC_DIR = join(TMP_DIR, "src")
 DEST_DIR = join(TMP_DIR, "dest")
 REMOTE = "test"
+
+os.environ.setdefault("LIDLESS_USER_DIR", TMP_DIR)
 
 
 class BaseAll:
@@ -33,7 +35,8 @@ class BaseAll:
             "settings": self.settings,
             "targets": self.targets,
         }
-        return Config(CONFIG_FILE, CACHE_DIR, data)
+        # user_dir will be set by env
+        return Config(user_dir=None, data=data)
 
     def get_target(self, key):
         return self.get_config().get_target(key)

@@ -4,6 +4,7 @@ from .base import BaseEndToEnd
 class TestCmdArgs(BaseEndToEnd):
     def assert_displays_help(self, cmd):
         output = self.call(cmd)
+        print(output)
         assert output[0].startswith("usage:")
         return output
     
