@@ -7,22 +7,6 @@ class TestBaseEndToEnd(BaseEndToEnd):
     Testing the base class itself.
     """
 
-    @pytest.fixture
-    def fileset1(self):
-        return """
-        foo
-        foo/bar.txt
-        foo/foo.txt
-        """
-
-    @pytest.fixture
-    def fileset2(self):
-        return """
-        foo
-        foo/foo.txt
-        bar
-        """
-
     def test_clean_lines(self, fileset1, fileset2):
         assert self.clean_lines(fileset1) == ["foo", "foo/bar.txt", "foo/foo.txt"]
         assert self.clean_lines(fileset2) == ["bar", "foo", "foo/foo.txt"]

@@ -262,81 +262,54 @@ The closest one will be used. You can use exclude_from and exclude together.
 
 ## Commands
 
-### Target commands
+### Target Commands
 
-#### Backup
+The two commands you can run on targets are `backup` and `restore`:
 
 ```
-python -m lidless show [target]
-python -m lidless backup [target]
-python -m lidless restore [target]
+python -m lidless backup <target> [--no-prompt] [--diff-only] [--print-cmds]
+python -m lidless restore <target> [--no-prompt] [--diff-only] [--print-cmds]
 ```
 
-#### Config commands
+Both of these commands have the same options. With no options the behaviour is to show a summary of the changes and asks you whether to continue.
 
+Note that the commands themselves are implemented by the backup tool specified in the target (e.g. **rsync**, **git**) and these may not implement all options. However the general structure is as follows:
 
+##### No prompt
 
-* print/show tags
-* backup
-* restore
-* check
+The `--no-promp` option skips the prompt and proceeds directly with the backup.
 
-```json
-{
-  "roots": {
-    "/projects": {
-        "dest": "projects",
-        "label": "files",
-        "/project-1/code": {
-            "label": "git",
-            "/settings": {
-                "label": "files",
-            },
-            "/db.sqlite3": {
-                 "label": "files",
-            }
-        }
-    }
-  },
-  "settings": {
-    "default_tags": ["dir"]
-  },
-  "targets": {
-    "ext": {
-      "tool": "rsync",
-      "dest": "/other/tmp"
-    }
-  }
-}
+```
+python -m lidless backup <target> --no-prompt
 ```
 
-Tga
+##### Diff only
 
-```json
-{
-  "roots": {
-    "a": {}
-  },
-  "settings": {
-    "default_tags": ["dir"]
-  },
-  "targets": {
-    "ext": {
-      "tool": "rsync",
-      "dest": "/other/tmp"
-    }
-  }
-}
+The `--diff-only` option shows the changes.  This option disables the prompt, so `--no-prompt` has no effect if included.
+
+```
+python -m lidless backup <target> --diff-only
 ```
 
+##### Just print the commands
 
+The `--print-cmds` will print the runnable commands so you can inspect or run them. 
 
+```
+python -m lidless backup <target> --print-cmds
+```
 
+This option disables the prompt, so `--no-prompt` has no effect if included. If used in combination with `--diff` it will print the commands used to produce the diff.
 
+Bear in mind that tools (including **rsync** and **rclone**) apply additional formatting to the diff returned by those commands, so running the printed commands independently will not produce the same output.
 
-1. Set up a remote
-2. Test it
-3. Set up nodes
+### Path commands
+
+These commands update options in the config file for the current working directory. To be defined.
+
+### Config commands
+
+These commands work with other aspects of the config. To be defined.
 
 
 ## Development
@@ -347,7 +320,5 @@ Run tests with:
 pytest
 ```
 
-
-
-
+Run files through black and flake8.
 

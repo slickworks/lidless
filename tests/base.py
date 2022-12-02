@@ -29,10 +29,8 @@ class BaseAll:
         target.update(kwargs)
         return target
 
-    def create_root(self, path, data=None):
-        path = join(SRC_DIR, path)
-        data = data or {}
-        return {path: data}
+    def create_root(self, path):
+        return join(SRC_DIR, path)
 
     def get_config(self):
         data = {
