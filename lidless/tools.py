@@ -31,6 +31,10 @@ class BaseTool:
 
 
 class RsyncBase(BaseTool):
+    """
+    Base class for rsync like tools.
+    The backup and restore commands should be identical, just in different directions.
+    """
     def backup(self, src, dest, exclude, print_only, diff_only):
         self._apply(src, dest, exclude, print_only, diff_only)
         
@@ -59,7 +63,7 @@ class RsyncBase(BaseTool):
 @dataclass
 class Rsync(RsyncBase):
     dest: str = ""
-    cmd: str = "rsync -a {src} {dest} --delete-after"
+    cmd: str = "rsync -a --mkpath {src} {dest} --delete-after"
 
 
 @dataclass

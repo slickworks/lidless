@@ -59,16 +59,14 @@ class NodeCollector:
         return node_data.get("tags", self.default_tags or [])
 
     def _get_node(self, node_path, base_dest, base_path, node_data):
-
         return Node(
-            config=self,
             path=node_path,
             dest=self._get_dest(base_dest, node_path, base_path),
             exclude=self._get_exclude(node_data),
         )
 
     def _get_exclude(self, node_data):
-        nested = [entry for entry in node_data.keys() if entry.startswith("/")]
+        nested = [entry.lstrip("/") for entry in node_data.keys() if entry.startswith("/")]
         exclude = node_data.get("exclude", [])
         unique = set(nested + exclude)
         combined = list(unique)

@@ -4,39 +4,134 @@
 
 ## Overview
 
+Lidless helps you create a personal backup strategy using rsync, rclone, git and other tools.
+
+It exists because even with those tools, backups are difficult:
+
+* We want to exclude directories
+* 
+
 As a developer I want the ability to:
 
-* Backup my files to multiple remote locations using rsync or rclone.
-* Exclude git repos (as they are already backed up).
+* Backup my data to multiple remote locations using rsync or rclone.
+* Exclude directories which are git repos as they are already backed up.
 * Include some files from repos (e.g. gitignored config).
+* Be told if I am about to backup files I don't want to backup.
 * Tell if any repos are not fully backed up (unpushed commits).
 * Run a selective backup (I'm in an airport, and know what I've changed).
 * Easily rebuild my hard drive from all those sources (the whole point of backups)
-* Manage all that from one file.
+* Manage all the above easily and centrally.
 
-Lidless is a simple tool that lets you do all that.
+Lidless is a very simple CLI tool which does all this.
+
+## Installation
+
+Lidless only works on Linux/MacOS (Windows support is easy enough to add) and requires Python 3.6 or above.
+
+#### Running Lidless
+
+To run lidless just clone or download the repo and execute the **run.sh** inside it:
+
+```bash
+git clone git@github.com:slickworks/lidless.git
+./lidless/run.sh
+```
+
+If you have Python 3.6 or above you don't need to do anything else. 
+
+#### Python compatibilyt
+
+If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.6 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
+
+```bash
+$ pyenv shell 3.10.4
+$ pyenv which python
+/home/me/.pyenv/versions/3.10.4/bin/python
+```
+
+The point the env var `LIDLESS_PYTHON` to it:
+
+```bash
+export LIDLESS_PYTHON=/home/andrew/.pyenv/versions/3.10.4/bin/python
+```
+
+This ensures lidless always runs using that exact version, regardless of any active virtual environment or system Python versions.
+
+#### Aliases
+
+You will most likely want to create an alias:
+
+```bash
+alias lidless="/path/to/lidless/run.sh"
+```
+
+You may also want aliases for the common permutations of arguments you will run, e.g:
+
+```bash
+alias backup-mega="lidless backup mega"
+```
+
+I highly recommend Turboshell for that.
+
+#### User directory
+
+By default lidless will save its config and cache files in a directory at **~/lidless** but you can change this with the `LIDLESS_USER_DIR`  environment variable:
+
+```bash
+export LIDLESS_USER_DIR=/some/other/directory
+```
+
+#### Summary
+
+You will likely end up with something like this in your **~/.bashrc** or **~/.zshrc** file:
+
+```bash
+export LIDLESS_USER_DIR=/some/other/directory
+export LIDLESS_PYTHON=/home/andrew/.pyenv/versions/3.10.4/bin/python
+alias lidless="/path/to/lidless/run.sh"
+alias backup="lidless backup mega"
+```
+
+Alternatively, put all this in a separate file (e.g. **~/lidless-config.sh**) and source that in your **~/.bashrc** or **~/.zshrc** file:
+
+```bash
+. ~/lidless-config.sh
+```
+
+Remember that changes to  **~/.bashrc** or **~/.zshrc** only affect new shell sessions. To load the changes in an open shell session you need to source the file:
+
+```bash
+source ~/.bashrc
+```
 
 ## Usage
 
-### Installation
-
-Run the installation script (not working yet)
-
-You will need to create your own aliases, for which I highly recommend turboshell.
-
 ### Configuration
 
-Lidless runs from a configuration file written in JSON which you edit manually (for now).
+Lidless runs from an JSON file located at **~/lidless/config.json** (unless you specified otherwise) which looks like this:
 
-The config object has 3 sections: **targets**, **roots** and **defaults**.
+```json
+{
+    "roots": {
+        "/home/me": {...},
+        "/projects/acme": {...}
+    },
+    "targets": {
+        "mega": {...},
+        "google-drive": {...}
+    }
+}
+```
+
+The **roots** define points in your filesystem you want to backup. The **targets** define backup strategies (where, what and how). For now you must edit this file manually.
 
 #### Targets
 
-Targets define:
+Each target defines:
 
 * A backup tool (such as rsync or rclone)
-* Options (such as the destination)
-* Filters (more on this later)
+* A set of labels (to specify which nodes to include)
+* Optional additional parameters
 
 Here for example we define two targets. One for an external hard drive, another for [mega](https://mega.nz/) (a cloud storage provider):
 

@@ -1,15 +1,9 @@
 from dataclasses import dataclass
 from lidless.tools import BaseTool
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from config import Config
-
 
 @dataclass
 class Node:
-    config: "Config"
     path: str
     dest: str
     exclude: list[str]

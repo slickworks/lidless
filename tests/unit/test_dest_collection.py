@@ -5,6 +5,13 @@ from .base import BaseWithTarget
 
 
 class TestDestinations(BaseWithTarget):
+    """
+    TOD: 
+        - move destination to tools.
+        - use path maps.
+        - note that target must be one up.
+
+    """
     def test_duplicate_destinations_not_allowed(self):
         self.roots = {
             "/a": {"tags": [self.target_tag]},

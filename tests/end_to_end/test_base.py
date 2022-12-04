@@ -24,12 +24,10 @@ class TestBaseEndToEnd(BaseEndToEnd):
     def test_assert_dest_when_same(self, fileset1):
         self.create_src_dir(fileset1)
         self.create_dest_dir(fileset1)
-        self.assert_dest(fileset1)
+        assert self.dest_contents() == self.clean_lines(fileset1)
 
     def test_assert_dest_when_different(self, fileset1, fileset2):
         self.create_src_dir(fileset1)
         self.create_dest_dir(fileset2)
-        with pytest.raises(AssertionError):
-            self.assert_dest(fileset1)
-        with pytest.raises(AssertionError):
-            self.assert_dest("")
+        assert self.dest_contents() != self.clean_lines(fileset1)
+        assert self.dest_contents() != self.clean_lines("")

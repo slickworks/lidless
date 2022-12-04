@@ -38,7 +38,7 @@ class Config:
             with open(self.config_file) as fp:
                 return json.load(fp)
         else:
-            return {"roots": {}, "settings": [], "targets": {}}
+            return {"roots": {}, "settings": {}, "targets": {}}
 
     def _validate(self):
         for key in ["roots", "targets", "settings"]:

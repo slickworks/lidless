@@ -12,10 +12,7 @@ class TestBackup(BaseEndToEndWithTarget):
         self.save_config()
         return root
 
-    # def setup_method(self):
-    #     super().setup_method()
-
-    def test_print_cmd(self, root):
+    def test_print_only(self, root):
         output = self.call(f"backup {self.target_key} --print-only")
         expected = [
             "rsync",
@@ -23,16 +20,11 @@ class TestBackup(BaseEndToEndWithTarget):
             DEST_DIR
         ]
         for s in expected:
-            assert s in output[0]
-        assert "--dry-run" not in output[0]
+            self.assert_output_contains(output, s)
+        assert self.dest_contents() == []
 
-    # def test_print_cmd_dry_run(self, root):
-    #     output = self.call(f"backup {self.target_key} --cmds --dry-run")
-    #     expected = [
-    #         "rsync",
-    #         root,
-    #         DEST_DIR,
-    #         "--dry-run" 
-    #     ]
-    #     for s in expected:
-    #         assert s in output[0]
+    @pytest.mark.usefixtures("root")
+    def test_no_prompt_syncs_contents_on_empty_dir(self, fileset1):
+        assert self.dest_contents() == []
+        self.call(f"backup {self.target_key} --no-prompt")
+        assert self.dest_contents() == self.clean_lines(fileset1)

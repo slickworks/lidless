@@ -1,5 +1,6 @@
 import os
 import glob
+import pprint
 import shutil
 import subprocess
 
@@ -51,8 +52,8 @@ class BaseEndToEnd(BaseAll, DirUtils):
     def create_dest_dir(self, file_list_str):
         self.create_dir_contents(DEST_DIR, file_list_str)
 
-    def assert_dest(self, file_list_str):
-        assert self.read_dir_contents(DEST_DIR) == self.clean_lines(file_list_str)
+    def dest_contents(self):
+        return self.read_dir_contents(DEST_DIR)
 
     def safety_check(self):
         """
@@ -80,6 +81,20 @@ class BaseEndToEnd(BaseAll, DirUtils):
         out = subprocess.getoutput(command)
         return out.split(os.linesep)
 
+    def lines_contain(self, lines, contents):
+        for line in lines:
+            if contents in line:
+                return True
+        return False
+
+    def assert_output_contains(self, output, contents):
+        if not self.lines_contain(output, contents):
+            lines = pprint.pformat(output)
+            raise AssertionError(f"Output does not have expected contents.\n\
+                Contents: '{contents}'.\n\
+                Output: {lines}"
+            )
+        return output
 
 
 class BaseEndToEndWithTarget(BaseEndToEnd):
