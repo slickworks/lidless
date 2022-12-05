@@ -61,20 +61,18 @@ class Config:
             raise UserError(f"Invalid target '{target_key}' - must be one of [{valid_keys}]")
 
         tags = data.pop("tags", [])
-        dest = data.pop("dest", "")
         nodes = []
         if with_nodes:
-            nodes = self.get_nodes(tags, dest)
+            nodes = self.get_nodes(tags)
 
         return Target(
             name=target_key,
             tags=tags,
-            dest=dest,
             tool=get_tool(data),
             nodes=nodes
         )
 
-    def get_nodes(self, tags=None, base_dest=""):
+    def get_nodes(self, tags=None):
         roots = self.roots
         default_tags = self.settings.get("default_tags", [])
-        return collect_nodes(roots, base_dest, tags, default_tags)
+        return collect_nodes(roots, tags, default_tags)

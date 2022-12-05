@@ -1,11 +1,19 @@
 import os
 
 
-def join_paths(*paths):
-    """Safely join paths which may omit slashes."""
-    first = paths[0]
-    start = "/" if first.startswith("/") else ""
-    return start + "/".join(path.strip("/") for path in paths)
+def join_paths(*paths, add_start=True, add_end=False, separator="/"):
+    """
+    Joins paths with single instance of separator regardless of whether the
+    paths start or end with sep. Optionally adds separator to start and/or end.
+    """
+    mash = separator.join(paths)
+    chunks = mash.split(separator)
+    joined = separator.join(s for s in chunks if len(s))
+    if add_start:
+        joined = separator + joined
+    if add_end:
+        joined = joined + separator
+    return joined
 
 
 def create_file(path, contents):
@@ -29,3 +37,37 @@ def find_duplicates(items):
             seen.add(x)
 
     return dupes
+
+
+def get_src_and_dest(path, maps, invert):
+    pairs = map_to_pairs(maps, invert)
+    dest = substitute_path(path, pairs)
+    dest = trailing_sep(dest)
+    path = trailing_sep(path)
+    if invert:
+        return dest, path
+    return path, dest
+
+
+def trailing_sep(path, sep="/"):
+    return path.rstrip(sep) + sep
+
+
+def substitute_path(path, pairs):
+    for a, b in pairs:
+        if path.startswith(a):
+            path = path[len(a):]
+            return join_paths(b, path)
+    return path
+
+
+def map_to_pairs(maps, invert):
+    pairs = []
+    for k, v in maps.items():
+        if invert:
+            pair = v, k
+        else:
+            pair = k, v
+        pairs.append(pair)
+    pairs.sort(key=lambda x: len(x[0]), reverse=True)
+    return pairs

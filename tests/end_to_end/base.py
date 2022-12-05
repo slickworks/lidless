@@ -60,17 +60,18 @@ class BaseEndToEnd(BaseAll, DirUtils):
         Checks the config as it will be loaded by command and ensures all collected
         directories are in TMP dir.
         """
-        config = Config()
+        config = Config(TMP_DIR)
+    
         def ensure(node, att, correct):
             value = getattr(node, att)
             if not value.startswith(correct):
                 raise AssertionError(f"Node {att} does not start with {correct}:\
                     {os.linesep}    {value}")
+        
         for target_key in config.target_keys():
             target = config.get_target(target_key)
             for node in target.nodes:
                 ensure(node, "path", SRC_DIR)
-                ensure(node, "dest", DEST_DIR)
 
     def call(self, command, check=True):
         """Calls lidless and returns output as list of strings."""

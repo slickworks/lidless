@@ -1,6 +1,5 @@
 import os
 from os.path import dirname, join
-from lidless import Config
 
 TMP_DIR = join(dirname(__file__), "tmp")
 ROOT = dirname(dirname(__file__))
@@ -11,6 +10,7 @@ DEST_DIR = join(TMP_DIR, "dest")
 REMOTE = "test"
 
 os.environ.setdefault("LIDLESS_USER_DIR", TMP_DIR)
+from lidless import Config
 
 
 class BaseAll:
@@ -25,7 +25,9 @@ class BaseAll:
         self.default_dest = DEST_DIR
 
     def create_target(self, **kwargs):
-        target = {"tool": "rsync", "dest": self.default_dest}
+        target = {"tool": "rsync", "maps": {
+            SRC_DIR: DEST_DIR
+        }}
         target.update(kwargs)
         return target
 
@@ -38,8 +40,7 @@ class BaseAll:
             "settings": self.settings,
             "targets": self.targets,
         }
-        # user_dir will be set by env var
-        return Config(user_dir=None, data=data)
+        return Config(user_dir=TMP_DIR, data=data)
 
     def get_target(self, key):
         return self.get_config().get_target(key)

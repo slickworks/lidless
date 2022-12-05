@@ -17,11 +17,11 @@ class DataclassInitErr(UserError):
         """
         Parses something like:
         Rsync.__init__() missing 1 required positional argument: 'dest'
+        Rsync.__init__() got an unexpected keyword argument 'dest'
         """
         error_msg = str(error)
-        start, args = error_msg.split(":")
-        if "required" in start:
-            super().__init__(f"Missing required args: {args}")
+        if ".__init__()" in error_msg:
+            error_msg = error_msg.replace(".__init__()", " error:")
         super().__init__(error_msg)
 
 

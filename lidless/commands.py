@@ -45,7 +45,6 @@ class BaseTargetCommand(BaseCommand):
     def __init__(self, config: Config) -> None:
         super().__init__(config)
         self.nodes = []
-        self.tool = None
 
     def _add_arguments(self, parser):
         parser.add_argument("target", help="Name of target")
@@ -56,30 +55,29 @@ class BaseTargetCommand(BaseCommand):
     def call(self, args):
         target_key = args.target
         target = self.config.get_target(target_key)
-        self.nodes = target.nodes
-        self.tool = target.tool
-        if args.print_only or args.diff_only:
-            args.no_prompt = True
-        if self.nodes:
-            if args.no_prompt:
-                self._apply(print_only=args.print_only, diff_only=args.diff_only)
-            else:
-                self._apply(print_only=False, diff_only=True)
-                if ui.accept_changes():
-                    self._apply(print_only=False, diff_only=False)
+        nodes = target.nodes
+        if nodes:
+            func = getattr(target.tool, self.cmd_name)
+            func(
+                nodes=nodes,
+                no_prompt=args.no_prompt,
+                print_only=args.print_only,
+                diff_only=args.diff_only
+            )
+
+
+        # if args.print_only or args.diff_only:
+        #     args.no_prompt = True
+            # if args.no_prompt:
+            # else:
+            #     func(self.nodes, print_only=True, diff_only=True)
+            #     func(self.nodes, print_only=False, diff_only=True)
+
+            #     # TODO: change all this to prompt for all. Maybe tools need interactive diff, and diff_confirm?
+            #     if ui.accept_changes():
+            #         self._apply(print_only=False, diff_only=False)
         else:
             print("No nodes collected.")
-
-    def _apply(self, print_only=True, diff_only=True):
-        func = getattr(self.tool, self.cmd_name)
-        for node in self.nodes:
-            func(
-                node.dest,
-                node.path,
-                node.exclude,
-                print_only,
-                diff_only
-            )
 
 
 class BackupCommand(BaseTargetCommand):

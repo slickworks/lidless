@@ -1,9 +1,10 @@
 import os
 import subprocess
+import sys
 
-from operator import itemgetter
 from dataclasses import dataclass
 from lidless.exceptions import DataclassInitErr
+from lidless.utils import get_src_and_dest
 
 
 class BaseTool:
@@ -15,17 +16,25 @@ class BaseTool:
     """
     cmd = "echo {src} && echo {dest} && ech {opts}"
 
-    def backup(self, src, dest, exclude, print_only, diff_only):
+    def backup(self, nodes, no_prompt, print_only, diff_only):
         pass
 
-    def restore(self, src, dest, exclude, print_only, diff_only):
+    def restore(self, nodes, no_prompt, print_only, diff_only):
         pass
 
     def __str__(self):
         return f"{type(self).__name__}:{os.linesep}{super().__str__()}"
 
-    def _exec(self, command):
-        subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    def _exec(self, cmd):
+        subprocess.check_call(cmd, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+
+    def _exec_cmds(self, *cmds, print_only=False):
+        if print_only:
+            func = print
+        else:
+            func = self._exec
+        for cmd in cmds:
+            func(cmd)
 
     def _get_cmd(self, src, dest, opts):
         return self.cmd.format(src=src, dest=dest, opts=opts)
@@ -35,71 +44,63 @@ class RsyncBase(BaseTool):
     """
     Base class for rsync like tools.
     The backup and restore commands should be identical, just in different directions.
+
+    Note: rsync cares about trailing slashes. These are identical:
+
+        rsync -av /src/foo /dest
+        rsync -av /src/foo/ /dest/foo
     """
 
     maps: dict
-    dest: str
     cmd: str
 
-    def backup(self, src, dest, exclude, print_only, diff_only):
-        self._run(src, exclude, print_only, diff_only, True)
+    def backup(self, nodes, no_prompt, print_only, diff_only):
+        self._run(nodes, no_prompt, print_only, diff_only, False)
         
-    def restore(self, src, dest, exclude, print_only, diff_only):
-        self._run(src, exclude, print_only, diff_only, False)
+    def restore(self, nodes, no_prompt, print_only, diff_only):
+        self._run(nodes, no_prompt, print_only, diff_only, True)
 
-    def _run(self, src, exclude, print_only, diff_only, backup):
-        opts = ""
+    def _run(self, nodes, no_prompt, print_only, diff_only, reverse):
+        if print_only or diff_only:
+            no_prompt = True
+
+        if no_prompt:
+            cmds = self._get_cmds(nodes, diff_only, reverse)
+            self._exec_cmds(cmds, print_only=print_only)
+        else:
+            if self._user_accepts_diff(nodes, reverse):
+                cmds = self._get_cmds(nodes, False, reverse)
+                self._exec_cmds(cmds)
+
+    def _get_cmds(self, nodes, diff_only, reverse):
+        cmds = []
+    
         if diff_only:
-            opts += " -avn"
-
-        src, dest = self._get_paths(src, backup)
-        cmd = self._get_cmd(src=dest, dest=src, opts=opts)
-        cmd = self._add_exclude(cmd, exclude)
-        
-        if print_only:
-            print(cmd)
+            opts = "-ain --out-format=\"%o %l %f\""
         else:
-            self._exec(cmd)
+            opts = "-az"
+
+        for node in nodes:
+            src, dest = get_src_and_dest(node.path, self.maps, reverse)
+            cmd = self._get_cmd(src=src, dest=dest, opts=opts)
+            for ex in node.exclude:
+                cmd += f" --exclude {ex}"
+            cmds.append(cmd)
         
-    def _get_paths(self, path, backup):
-
-        if backup:
-            src = path
-            dest = self._subs_path(path, False)
-        else:
-            src = self._subs_path(path, True)
-            dest = path
-
-        return src, dest
-
-    def _subs_path(self, path, switch=False):
-        for a, b in self._get_pairs(switch):
-            if path.startswith(a):
-                path = path[len(a):]
-                return b + path
+        return cmds
         
-    def _get_pairs(self, switch=False):
-        pairs = []
-        for k, v in self.maps:
-            if switch:
-                pair = k, v
-            else:
-                pair = v, k
-            pairs.append(pair)
-        pairs.sort(key=itemgetter(0))
-        return pairs
 
-    def _add_exclude(self, cmd, exclude):
-        for ex in exclude:
-            cmd += f" --exclude {ex}"
-        return cmd
+    def _user_accepts_diff(self, nodes, reverse):
+        cmds = self._get_cmds(nodes, True, reverse)
+
+        # TODO: read output and display in nicer format with human readable sizes,
+        # cut off if too many lines, and totals (size + file count) for mod, del, new
 
 
 @dataclass
 class Rsync(RsyncBase):
     maps: dict
-    dest: str = ""
-    cmd: str = "rsync -a --mkpath {src} {dest} --delete-after"
+    cmd: str = "rsync {opts} --mkpath {src} {dest} --delete-after"
 
 
 @dataclass
@@ -113,10 +114,10 @@ class Rclone(BaseTool):
 @dataclass
 class Git(BaseTool):
 
-    def backup(self, src, dest, exclude, print_only, diff_only):
+    def backup(self, nodes, no_prompt, print_only, diff_only):
         pass
     
-    def restore(self, src, dest, exclude, print_only, diff_only):
+    def restore(self, nodes, no_prompt, print_only, diff_only):
         pass
 
 

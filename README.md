@@ -39,7 +39,7 @@ git clone git@github.com:slickworks/lidless.git
 
 If you have Python 3.6 or above you don't need to do anything else. 
 
-#### Python compatibilyt
+#### Python versions
 
 If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.6 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
 
