@@ -32,7 +32,12 @@ class NodeCollector:
                 node_tags = self._get_node_tags(node_data)
                 if self._should_include_node(node_tags):
                     self._nodes.append(
-                        Node(path=node_path, tags=node_tags, exclude=self._get_exclude(node_data), data={})
+                        Node(
+                            path=node_path,
+                            tags=node_tags,
+                            exclude=self._get_exclude(node_data),
+                            data={},
+                        )
                     )
                 self._collect(
                     node_data,
@@ -58,7 +63,9 @@ class NodeCollector:
     #     )
 
     def _get_exclude(self, node_data):
-        nested = [entry.lstrip("/") for entry in node_data.keys() if entry.startswith("/")]
+        nested = [
+            entry.lstrip("/") for entry in node_data.keys() if entry.startswith("/")
+        ]
         exclude = node_data.get("exclude", [])
         unique = set(nested + exclude)
         combined = list(unique)

@@ -1,4 +1,5 @@
 import os
+import math
 
 
 def join_paths(*paths, add_start=True, add_end=False, separator="/"):
@@ -39,6 +40,37 @@ def find_duplicates(items):
     return dupes
 
 
+def strip_duplicates(items):
+    seen = set()
+    unique = []
+
+    for x in items:
+        if x not in seen:
+            unique.append(x)
+            seen.add(x)
+
+    return unique
+
+
+def get_path_leaves(paths):
+    unique = set()
+    remove = set()
+
+    for path in paths:
+        if os.path.isdir(path):
+            unique.add(path)
+
+    for path in unique:
+        for other in unique:
+            if other != path and other.startswith(path):
+                remove.add(path)
+
+    for path in remove:
+        unique.remove(path)
+
+    return sorted(unique)
+
+
 def get_src_and_dest(path, maps, invert):
     pairs = map_to_pairs(maps, invert)
     dest = substitute_path(path, pairs)
@@ -56,7 +88,7 @@ def trailing_sep(path, sep="/"):
 def substitute_path(path, pairs):
     for a, b in pairs:
         if path.startswith(a):
-            path = path[len(a):]
+            path = path[len(a) :]
             return join_paths(b, path)
     return path
 
@@ -71,3 +103,13 @@ def map_to_pairs(maps, invert):
         pairs.append(pair)
     pairs.sort(key=lambda x: len(x[0]), reverse=True)
     return pairs
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return f"{s}{size_name[i]}"

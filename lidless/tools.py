@@ -4,31 +4,29 @@ import sys
 
 from dataclasses import dataclass
 from lidless.exceptions import DataclassInitErr
-from lidless.utils import get_src_and_dest
+from lidless.models import Change, Tool
+from lidless.utils import get_src_and_dest, join_paths
+from lidless import ui
 
 
-class BaseTool:
+class BaseTool(Tool):
     """
     Subclasses:
         - Must use @dataclass
         - Must specify own fields.
         - Must implement public methods using same signatures.
     """
-    cmd = "echo {src} && echo {dest} && ech {opts}"
-
-    def backup(self, nodes, no_prompt, print_only, diff_only):
-        pass
-
-    def restore(self, nodes, no_prompt, print_only, diff_only):
-        pass
-
-    def __str__(self):
-        return f"{type(self).__name__}:{os.linesep}{super().__str__()}"
 
     def _exec(self, cmd):
-        subprocess.check_call(cmd, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+        subprocess.check_call(
+            cmd, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT
+        )
 
-    def _exec_cmds(self, *cmds, print_only=False):
+    def _getoutput(self, cmd):
+        output = subprocess.getoutput(cmd)
+        return output.split(os.linesep)
+
+    def _exec_cmds(self, cmds, print_only=False):
         if print_only:
             func = print
         else:
@@ -36,19 +34,14 @@ class BaseTool:
         for cmd in cmds:
             func(cmd)
 
-    def _get_cmd(self, src, dest, opts):
-        return self.cmd.format(src=src, dest=dest, opts=opts)
-
 
 class RsyncBase(BaseTool):
     """
     Base class for rsync like tools.
     The backup and restore commands should be identical, just in different directions.
 
-    Note: rsync cares about trailing slashes. These are identical:
-
-        rsync -av /src/foo /dest
-        rsync -av /src/foo/ /dest/foo
+    Note: rsync is passed whole directories with trailing / on each, which allows src
+    and dest paths to match.
     """
 
     maps: dict
@@ -56,7 +49,7 @@ class RsyncBase(BaseTool):
 
     def backup(self, nodes, no_prompt, print_only, diff_only):
         self._run(nodes, no_prompt, print_only, diff_only, False)
-        
+
     def restore(self, nodes, no_prompt, print_only, diff_only):
         self._run(nodes, no_prompt, print_only, diff_only, True)
 
@@ -66,17 +59,18 @@ class RsyncBase(BaseTool):
 
         if no_prompt:
             cmds = self._get_cmds(nodes, diff_only, reverse)
-            self._exec_cmds(cmds, print_only=print_only)
+            self._exec_cmds(cmds, print_only)
         else:
-            if self._user_accepts_diff(nodes, reverse):
+            changes = self._get_changes(nodes, reverse)
+            if ui.user_accepts_changes(changes):
                 cmds = self._get_cmds(nodes, False, reverse)
-                self._exec_cmds(cmds)
+                self._exec_cmds(cmds, print_only)
 
     def _get_cmds(self, nodes, diff_only, reverse):
         cmds = []
-    
+
         if diff_only:
-            opts = "-ain --out-format=\"%o %l %f\""
+            opts = '-ain --out-format="%o %l %n"'
         else:
             opts = "-az"
 
@@ -86,21 +80,24 @@ class RsyncBase(BaseTool):
             for ex in node.exclude:
                 cmd += f" --exclude {ex}"
             cmds.append(cmd)
-        
+
         return cmds
-        
 
-    def _user_accepts_diff(self, nodes, reverse):
-        cmds = self._get_cmds(nodes, True, reverse)
-
-        # TODO: read output and display in nicer format with human readable sizes,
-        # cut off if too many lines, and totals (size + file count) for mod, del, new
+    def _get_changes(self, nodes, reverse):
+        changes = []
+        for node, cmd in zip(nodes, self._get_cmds(nodes, True, reverse)):
+            for change_output in self._getoutput(cmd):
+                if change_output:
+                    action, size, path = change_output.split(" ", maxsplit=2)
+                    path = join_paths(node.path, path)
+                    changes.append(Change(action=action, size=int(size), path=path))
+        return changes
 
 
 @dataclass
 class Rsync(RsyncBase):
     maps: dict
-    cmd: str = "rsync {opts} --mkpath {src} {dest} --delete-after"
+    cmd: str = "rsync {opts} --mkpath {src} {dest} --delete"
 
 
 @dataclass
@@ -111,12 +108,12 @@ class Rclone(BaseTool):
     def _get_cmd(self, src, dest, opts):
         return self.cmd.format(src=src, dest=dest, opts=opts, provider=self.provider)
 
+
 @dataclass
 class Git(BaseTool):
-
     def backup(self, nodes, no_prompt, print_only, diff_only):
         pass
-    
+
     def restore(self, nodes, no_prompt, print_only, diff_only):
         pass
 

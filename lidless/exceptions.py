@@ -1,9 +1,11 @@
 from os import linesep as br
 
+
 class UserError(Exception):
     """
     Base class for errors that will be reported to the user.
     """
+
     def __init__(self, message) -> None:
         super().__init__()
         self.message = message
@@ -26,17 +28,14 @@ class DataclassInitErr(UserError):
 
 
 class DuplicateDestinationsError(UserError):
-
     def __init__(self, duplicates) -> None:
-        
+
         lines = [
             "Collected multiple paths with same destinations.",
             "This would result in data being overwritten.",
         ]
         for dest, paths in duplicates.items():
-            lines.extend([
-                f'Destination "{dest}" is used by following paths:{br}'
-            ])
+            lines.extend([f'Destination "{dest}" is used by following paths:{br}'])
             for path in paths:
                 lines.append(f"    {path}")
         super().__init__(br.join(lines) + br)

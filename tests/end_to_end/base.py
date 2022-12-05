@@ -34,7 +34,6 @@ class DirUtils:
 
 
 class BaseEndToEnd(BaseAll, DirUtils):
-
     def setup_method(self):
         super().setup_method()
         os.makedirs(TMP_DIR, exist_ok=True)
@@ -61,13 +60,15 @@ class BaseEndToEnd(BaseAll, DirUtils):
         directories are in TMP dir.
         """
         config = Config(TMP_DIR)
-    
+
         def ensure(node, att, correct):
             value = getattr(node, att)
             if not value.startswith(correct):
-                raise AssertionError(f"Node {att} does not start with {correct}:\
-                    {os.linesep}    {value}")
-        
+                raise AssertionError(
+                    f"Node {att} does not start with {correct}:\
+                    {os.linesep}    {value}"
+                )
+
         for target_key in config.target_keys():
             target = config.get_target(target_key)
             for node in target.nodes:
@@ -91,7 +92,8 @@ class BaseEndToEnd(BaseAll, DirUtils):
     def assert_output_contains(self, output, contents):
         if not self.lines_contain(output, contents):
             lines = pprint.pformat(output)
-            raise AssertionError(f"Output does not have expected contents.\n\
+            raise AssertionError(
+                f"Output does not have expected contents.\n\
                 Contents: '{contents}'.\n\
                 Output: {lines}"
             )
@@ -102,6 +104,7 @@ class BaseEndToEndWithTarget(BaseEndToEnd):
     """
     Remember to self.save_config() before self.call()
     """
+
     target_key = "ext"
     target_tag = "foo"
 

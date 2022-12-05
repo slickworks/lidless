@@ -25,9 +25,7 @@ class BaseAll:
         self.default_dest = DEST_DIR
 
     def create_target(self, **kwargs):
-        target = {"tool": "rsync", "maps": {
-            SRC_DIR: DEST_DIR
-        }}
+        target = {"tool": "rsync", "maps": {SRC_DIR: DEST_DIR}}
         target.update(kwargs)
         return target
 

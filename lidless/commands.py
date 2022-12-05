@@ -1,11 +1,10 @@
-from lidless import ui
 from lidless.config import Config
 
 
 class BaseCommand:
     cmd_name = ""
     cmd_help = "No help provided"
-    
+
     def __init__(self, config: Config) -> None:
         self.config = config
 
@@ -31,6 +30,7 @@ class CwdCommand(BaseCommand):
     """
     Command for doing things with the current working directory.
     """
+
     cmd_name = "cwd"
     cmd_help = "Do cwd stuff"
 
@@ -38,19 +38,28 @@ class CwdCommand(BaseCommand):
 class BaseTargetCommand(BaseCommand):
     """
     Base for commands which run against targets.
-        
+
     The default behaviour is to show changes and prompt whether to continue,
     but this can be overriden with optional arguments.
     """
+
     def __init__(self, config: Config) -> None:
         super().__init__(config)
         self.nodes = []
 
     def _add_arguments(self, parser):
         parser.add_argument("target", help="Name of target")
-        parser.add_argument("--diff-only", action="store_true", help="Show the changes, don't run.")
-        parser.add_argument("--print-only", action="store_true", help="Print commands, don't run.")
-        parser.add_argument("--no-prompt", action="store_true", help="Don't prompt to confirm changes, just run.")
+        parser.add_argument(
+            "--diff-only", action="store_true", help="Show the changes, don't run."
+        )
+        parser.add_argument(
+            "--print-only", action="store_true", help="Print commands, don't run."
+        )
+        parser.add_argument(
+            "--no-prompt",
+            action="store_true",
+            help="Don't prompt to confirm changes, just run.",
+        )
 
     def call(self, args):
         target_key = args.target
@@ -62,22 +71,10 @@ class BaseTargetCommand(BaseCommand):
                 nodes=nodes,
                 no_prompt=args.no_prompt,
                 print_only=args.print_only,
-                diff_only=args.diff_only
+                diff_only=args.diff_only,
             )
-
-
-        # if args.print_only or args.diff_only:
-        #     args.no_prompt = True
-            # if args.no_prompt:
-            # else:
-            #     func(self.nodes, print_only=True, diff_only=True)
-            #     func(self.nodes, print_only=False, diff_only=True)
-
-            #     # TODO: change all this to prompt for all. Maybe tools need interactive diff, and diff_confirm?
-            #     if ui.accept_changes():
-            #         self._apply(print_only=False, diff_only=False)
         else:
-            print("No nodes collected.")
+            print("No nodes selected.")
 
 
 class BackupCommand(BaseTargetCommand):
