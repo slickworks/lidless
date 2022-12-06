@@ -6,12 +6,6 @@ from lidless.models import Tool
 
 
 class BaseTool(Tool):
-    """
-    Subclasses:
-        - Must use @dataclass
-        - Must specify own fields.
-        - Must implement public methods using same signatures.
-    """
 
     def _exec(self, cmd):
         subprocess.check_call(
@@ -20,7 +14,10 @@ class BaseTool(Tool):
 
     def _get_output(self, cmd):
         output = subprocess.getoutput(cmd)
-        return output.split(os.linesep)
+        lines = output.split(os.linesep)
+        if len(lines) == 1 and lines[0] == "":
+            return []
+        return lines
 
     def _exec_cmds(self, cmds, print_only=False):
         if print_only:
