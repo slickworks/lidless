@@ -25,14 +25,14 @@ def user_accepts_changes(changes):
 def print_changes_summary(changes):
     total_size = convert_size(sum(c.size for c in changes))
     directories = get_path_leaves(c.path for c in changes)
-    # file_changes =  [c for c in changes if not c.path.endswith("/.")]
     send = [c for c in changes if c.action == "send"]
     delete = [c for c in changes if c.action == "del."]
 
     print("-------------------CHANGES-------------------")
     print("")
     print(
-        f" {len(send)} changes ({total_size}) and {len(delete)} deletion in {len(directories)} directories:"
+        f" {len(send)} changes ({total_size}) and {len(delete)}\
+            deletions in {len(directories)} directories:"
     )
     print("")
     for d in directories:

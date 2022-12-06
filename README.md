@@ -184,9 +184,11 @@ Here for example we define two targets. One for an external hard drive, another 
 ```json
 {
   "targets": {
-    "my-hdd": {
+    "hdd": {
       "tool": "rsync",
-      "dest": "/mnt/ext-hd2"
+      "maps": {
+          "/home/me/projects": "/mnt/ext-hd2"
+      }
     },
     "mega": {
       "tool": "rclone",
@@ -218,12 +220,8 @@ If you have multiple top level entries, you must specify the destination on the 
 ```json
 {
   "roots": {
-    "/projects": {
-      "dest": "projects",
-    },
-    "/home/andrew": {
-      "dest": "home",
-    }
+    "/projects": {},
+    "/home/andrew": {}
   }
 }
 ```
@@ -236,7 +234,6 @@ You can nest paths within other paths:
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
        "/project-1/code": {}
     }
   }
@@ -269,11 +266,9 @@ You can add tags to paths, which lets you control which directories are included
   "roots": {
     "/projects": {
       "tags": ["cloud"],
-      "dest": "projects",
     },
     "/home/andrew": {
       "tags": ["cloud", "personal"],
-      "dest": "home",
     }
   }
 }
@@ -286,7 +281,6 @@ You can then tell targets which tags to include:
   "targets": {
     "my-hdd": {
       "tool": "rsync",
-      "dest": "/mnt/ext-hd2",
       "tags": ["personal"]
     },
     "mega": {
@@ -327,7 +321,6 @@ Let's look at how default tags and nested directories interact to allow us to ex
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
         "/project-1/code": {
           "tags": ["git"],
           "/settings": {}
@@ -368,7 +361,6 @@ You can add exclude patterns like so:
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
       "exclude": ["*.pyc"]
     }
   }
@@ -377,7 +369,7 @@ You can add exclude patterns like so:
 
 You can also set an exclude_from in defaults, in a target, or a node.
 
-```
+```json
 {
   "defaults": {
     "exclude_from": "path/to/file1"

@@ -1,38 +1,7 @@
-import os
-import subprocess
-import sys
-
-from dataclasses import dataclass
-from lidless.exceptions import DataclassInitErr
-from lidless.models import Change, Tool
+from lidless.models import Change
 from lidless.utils import get_src_and_dest, join_paths
 from lidless import ui
-
-
-class BaseTool(Tool):
-    """
-    Subclasses:
-        - Must use @dataclass
-        - Must specify own fields.
-        - Must implement public methods using same signatures.
-    """
-
-    def _exec(self, cmd):
-        subprocess.check_call(
-            cmd, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT
-        )
-
-    def _getoutput(self, cmd):
-        output = subprocess.getoutput(cmd)
-        return output.split(os.linesep)
-
-    def _exec_cmds(self, cmds, print_only=False):
-        if print_only:
-            func = print
-        else:
-            func = self._exec
-        for cmd in cmds:
-            func(cmd)
+from .base_tool import BaseTool
 
 
 class RsyncBase(BaseTool):
@@ -70,6 +39,8 @@ class RsyncBase(BaseTool):
         cmds = []
 
         if diff_only:
+            # Use %n rather than %f as %f prints full path for "send" but 
+            # relative paths for "del." entries. We join the base path later.
             opts = '-ain --out-format="%o %l %n"'
         else:
             opts = "-az"
@@ -86,51 +57,9 @@ class RsyncBase(BaseTool):
     def _get_changes(self, nodes, reverse):
         changes = []
         for node, cmd in zip(nodes, self._get_cmds(nodes, True, reverse)):
-            for change_output in self._getoutput(cmd):
+            for change_output in self._get_output(cmd):
                 if change_output:
                     action, size, path = change_output.split(" ", maxsplit=2)
                     path = join_paths(node.path, path)
                     changes.append(Change(action=action, size=int(size), path=path))
         return changes
-
-
-@dataclass
-class Rsync(RsyncBase):
-    maps: dict
-    cmd: str = "rsync {opts} --mkpath {src} {dest} --delete"
-
-
-@dataclass
-class Rclone(BaseTool):
-    cmd = "rclone sync {src} {provider}:{dest}"
-    provider: str
-
-    def _get_cmd(self, src, dest, opts):
-        return self.cmd.format(src=src, dest=dest, opts=opts, provider=self.provider)
-
-
-@dataclass
-class Git(BaseTool):
-    def backup(self, nodes, no_prompt, print_only, diff_only):
-        pass
-
-    def restore(self, nodes, no_prompt, print_only, diff_only):
-        pass
-
-
-config = {
-    "rsync": Rsync,
-    "rclone": Rclone,
-}
-
-
-def get_tool(data: dict) -> BaseTool:
-    try:
-        key = data.pop("tool")
-    except KeyError:
-        raise
-    cls = config[key]
-    try:
-        return cls(**data)
-    except TypeError as err:
-        raise DataclassInitErr(key, err)

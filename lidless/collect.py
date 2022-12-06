@@ -1,5 +1,3 @@
-from collections import defaultdict
-from lidless.exceptions import DuplicateDestinationsError
 from lidless.models import Node
 from lidless.utils import join_paths
 
@@ -56,12 +54,6 @@ class NodeCollector:
     def _get_node_tags(self, node_data):
         return node_data.get("tags", self.default_tags or [])
 
-    # def _get_node(self, node_path, base_dest, base_path, node_data):
-    #     # dest=self._get_dest(base_dest, node_path, base_path),
-    #     return Node(
-    #         path=node_path,
-    #     )
-
     def _get_exclude(self, node_data):
         nested = [
             entry.lstrip("/") for entry in node_data.keys() if entry.startswith("/")
@@ -71,6 +63,12 @@ class NodeCollector:
         combined = list(unique)
         combined.sort()
         return combined
+
+    # def _get_node(self, node_path, base_dest, base_path, node_data):
+    #     # dest=self._get_dest(base_dest, node_path, base_path),
+    #     return Node(
+    #         path=node_path,
+    #     )
 
     # def _get_dest(self, base_dest, node_path, base_path):
     #     cut = len(base_path)
