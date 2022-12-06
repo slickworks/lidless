@@ -1,7 +1,7 @@
 """
-The entry point. You probably want to:
+The __main__.py module gets run when you call:
 
-    python -m lidless {args}
+    python -m lidless
 
 """
 from argparse import ArgumentParser
@@ -14,7 +14,7 @@ from lidless.commands import commands
 def main(commands):
     config = Config()
 
-    parser = ArgumentParser(prog="<your-alias>")
+    parser = ArgumentParser(prog="lidless")  # assuming you have created an alias.
     parser.set_defaults(call=lambda _: parser.print_usage())
     subparsers = parser.add_subparsers()
 

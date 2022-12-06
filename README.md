@@ -1,32 +1,78 @@
 # Lidless
 
-*A backup tool for devs.*
+*The all-seeing backup tool.*
 
 ## Overview
 
-Lidless helps you create a personal backup strategy using rsync, rclone, git and other tools.
+Lidless lets you define a backup strategy using rsync, rclone and git from a single JSON file.
 
-It exists because even with those tools, backups are difficult:
+### Why I built this
 
-* We want to exclude directories
-* 
+I need to be able to switch to a new laptop with minimal effort or data loss in case my current one gets lost, damaged or stolen. But as a developer, my hard drive includes data that:
 
-As a developer I want the ability to:
+* Must always be backed up (Documents, notes etc...)
+* I ideally want to save, but aren't critical:
+  * Test databases
+  * Application settings and preferences
+* I don't want to backup because:
+  * I can recreate easily (Virtual envs, Docker images etc...)
+  * It's already backed up (git repositories)
 
-* Backup my data to multiple remote locations using rsync or rclone.
-* Exclude directories which are git repos as they are already backed up.
-* Include some files from repos (e.g. gitignored config).
-* Be told if I am about to backup files I don't want to backup.
-* Tell if any repos are not fully backed up (unpushed commits).
-* Run a selective backup (I'm in an airport, and know what I've changed).
-* Easily rebuild my hard drive from all those sources (the whole point of backups)
-* Manage all the above easily and centrally.
+And of course:
 
-Lidless is a very simple CLI tool which does all this.
+* Some of what I want to back up is nested inside directories I don't want to backup.
+* Some data needs to be extracted or processed before backing up.
+* I want to back data up to multiple places, based on data allowance, and how much I trust them.
+
+This requires a rather complex backup strategy, and I want an easy way to manage that.
+
+### Features
+
+##### Granular inclusion
+
+Lidless makes it easy to say:
+
+* Include a directory in a backup.
+* But exclude some subdirectories (e.g. a git repository - because that's backed up elsewhere).
+* But include subdirectories in those (e.g. gitignored .env files - because we want to keep those).
+
+##### Multiple destinations
+
+You can easily back up the same filesets to multiple destinations, e.g.
+
+* To an external hard drive using rsync.
+* To a private server using rsync.
+* To a cloud provider (drive, mega etc) using rclone.
+
+##### Flexible configuration
+
+You might want to:
+
+* Backup slightly different filesets to destinations.
+* Restore certain files to a different location than where they came from (e.g. you don't want to override your .bashrc file on a new machine, but might want to copy it somewhere to compare)
+
+##### Handle git repositories
+
+You probably don't want to backup your git repositories, but you might want to:
+
+* See at a glance which repositories have unpushed commits.
+* Restore repositories to the same location on a new machine.
+
+Lidless has a special "tool "for that, but you can write your own quite easily.
+
+##### Previews
+
+Previews help you see if you're about to copy or delete files you didn't intend to. You can explored these interactively to narrow in on the changes you care about.
 
 ## Installation
 
-Lidless only works on Linux/MacOS (Windows support is easy enough to add) and requires Python 3.6 or above.
+#### Prerequisites
+
+You need:
+
+* Linux/MacOS.
+* Python 3.7 or above (see below for help with this).
+* Whichever tools you are going to use: rsync, rclone, git etc...
 
 #### Running Lidless
 
@@ -37,11 +83,11 @@ git clone git@github.com:slickworks/lidless.git
 ./lidless/run.sh
 ```
 
-If you have Python 3.6 or above you don't need to do anything else. 
+If you have Python 3.7 or above you don't need to do anything else. 
 
 #### Python versions
 
-If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.6 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
+If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.7 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
 
 ```bash
 $ pyenv shell 3.10.4
@@ -406,8 +452,13 @@ These commands update options in the config file for the current working directo
 
 These commands work with other aspects of the config. To be defined.
 
+## Learning
 
-## Development
+This project only has ~500 lines of code, yet shows several cool things you can do with Python and Bash that you can use in your own projects.
+
+Start with [run.sh](run.sh) and then onto [lidless/\_\_main\_\_.py](lidless/__main__.py]) and just keep following the code.
+
+## Contributing
 
 Run tests with:
 
