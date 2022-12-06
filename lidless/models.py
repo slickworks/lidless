@@ -3,12 +3,12 @@ from lidless.utils import convert_size
 
 
 class Tool:
-    def backup(self, nodes, no_prompt, print_only, diff_only):
-        raise NotImplementedError()
-
-    def restore(self, nodes, no_prompt, print_only, diff_only):
-        raise NotImplementedError()
-
+    """
+    Subclasses must:
+        - Be dataclasses.
+        - Specify own fields.
+        - Implement public methods using same signatures.
+    """
     cmd = "echo {src} && echo {dest} && ech {opts}"
 
     def _get_cmd(self, src, dest, opts):
@@ -16,6 +16,12 @@ class Tool:
 
     def __str__(self):
         return f"{type(self).__name__}"
+
+    def backup(self, nodes, no_prompt, print_only, diff_only):
+        raise NotImplementedError()
+
+    def restore(self, nodes, no_prompt, print_only, diff_only):
+        raise NotImplementedError()
 
 
 @dataclass
