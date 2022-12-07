@@ -4,7 +4,7 @@ from .git import Git
 from .rclone import Rclone
 from .rsync import Rsync
 
-
+# TODO: use full class path strings in config instead.
 config = {
     "git": Git,
     "rsync": Rsync,

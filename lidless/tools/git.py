@@ -1,23 +1,8 @@
 import os
 from dataclasses import dataclass
+from lidless.models import GitChanges
 from .base_tool import BaseTool
 
-
-@dataclass
-class GitChanges:
-    path: str
-    uncommitted: list[str]
-    unpushed: list[str]
-
-    def __str__(self):
-        lines = [f"{os.linesep}  {self.path}"]
-        if self.uncommitted:
-            lines.append("    Uncommitted changes:")
-            lines.extend(f"      {s}" for s in self.uncommitted)
-        if self.unpushed:
-            lines.append("    Unpushed commits:")
-            lines.extend(f"      {s}" for s in self.unpushed)
-        return os.linesep.join(lines)
 
 @dataclass
 class Git(BaseTool):
@@ -25,6 +10,9 @@ class Git(BaseTool):
         """
         Only does diff.
         """
+        if any([no_prompt, print_only, diff_only]):
+            print("Options ignored.")
+
         cmd_other = "git log --branches --not --remotes --decorate --oneline"
         cmd_diff = "git diff --name-only"
         cmd_diff_cached = "git diff --name-only --cached"
@@ -43,7 +31,8 @@ class Git(BaseTool):
             for change in changes:
                 print(change)
             print("")
+        else:
+            print(f"No unsaved changes across {len(nodes)} repos.")
         
-
     def restore(self, nodes, no_prompt, print_only, diff_only):
-        pass
+        print("Not implemented yet")

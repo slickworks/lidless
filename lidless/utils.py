@@ -40,18 +40,6 @@ def find_duplicates(items):
     return dupes
 
 
-def strip_duplicates(items):
-    seen = set()
-    unique = []
-
-    for x in items:
-        if x not in seen:
-            unique.append(x)
-            seen.add(x)
-
-    return unique
-
-
 def get_path_leaves(paths):
     unique = set()
     remove = set()

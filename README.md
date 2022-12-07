@@ -4,29 +4,51 @@
 
 ## Overview
 
-Lidless lets you define a backup strategy using rsync, rclone and git from a single JSON file.
+Lidless lets you define a backup strategy using [rsync](https://rsync.samba.org/), [rclone](https://rclone.org/) and [git](https://git-scm.com/) from a single config file.
 
-### Why I built this
+### Why do we need this?
 
-I need to be able to switch to a new laptop with minimal effort or data loss in case my current one gets lost, damaged or stolen. But as a developer, my hard drive includes data that:
+Maintaining a full up-to-date backup of a developer's hard drives is difficult:
 
-* Must always be backed up (Documents, notes etc...)
-* I ideally want to save, but aren't critical:
-  * Test databases
-  * Application settings and preferences
-* I don't want to backup because:
-  * I can recreate easily (Virtual envs, Docker images etc...)
-  * It's already backed up (git repositories)
+* Some things we don't want to backup:
+  * Virtual environments, Docker images, binaries and other things we can rebuild easily.
+  * Git repositories, because they are already backed up*.
+* Some directories we want to backup are nested inside others that we don't:
+  * gitignored config files inside a repo.
+  * Application caches in the home drive.
+* Some data is a bit more complex to backup:
+  * Databases need dumped first.
+  * Sensitive data may need encrypted.
+* Some data is a bit more complex to restore:
+  * Clone git repositories to the same paths as your old machine.
+  * We don't want to blindly overwrite config files (e.g. .bashrc) on a new machine.
 
-And of course:
+As useful as tools like Dropbox are, they just don't support these requirements, and we need something more.
 
-* Some of what I want to back up is nested inside directories I don't want to backup.
-* Some data needs to be extracted or processed before backing up.
-* I want to back data up to multiple places, based on data allowance, and how much I trust them.
-
-This requires a rather complex backup strategy, and I want an easy way to manage that.
+\* *Unless there are unpushed commits, in which case we want to know! See below...*
 
 ### Features
+
+Include:
+
+
+
+* Some things need processing first (e.g. database dumps, zipping and encrypting sensitive data).
+
+If you're serious about data:
+
+* You backup to multiple providers.
+* You encrypt some files.
+* You use a USB drive for on-the-go backups when there's no Internet.
+
+And of course, we also need control over how to restore:
+
+* Just the things we need to work (e.g. a temporary machine).
+* Without overwriting config files (e.g. .bashrc) on a new machine.
+
+Although Dropbox is great, it can't handle the *all* above requirements.
+
+
 
 ##### Granular inclusion
 
@@ -38,9 +60,9 @@ Lidless makes it easy to say:
 
 ##### Multiple destinations
 
-You can easily back up the same filesets to multiple destinations, e.g.
+You can easily back up filesets to multiple destinations, e.g.
 
-* To an external hard drive using rsync.
+* To an USB drive using rsync.
 * To a private server using rsync.
 * To a cloud provider (drive, mega etc) using rclone.
 
@@ -448,7 +470,7 @@ These commands work with other aspects of the config. To be defined.
 
 This project only has ~500 lines of code, yet shows several cool things you can do with Python and Bash that you can use in your own projects.
 
-Start with [run.sh](run.sh) and then onto [lidless/\_\_main\_\_.py](lidless/__main__.py]) and just keep following the code.
+Start with [run.sh](run.sh) and then onto [lidless/\_\_main\_\_.py](lidless/__main__.py]) and just keep following the code. If you are interested in creating your own commands, look at Turboshell.
 
 ## Contributing
 

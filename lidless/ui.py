@@ -4,7 +4,6 @@ from lidless.utils import convert_size, get_path_leaves
 
 
 def user_accepts_changes(changes):
-
     if not (changes):
         print("")
         print(" No changes detected.")

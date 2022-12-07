@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from lidless.utils import convert_size
 
@@ -45,6 +46,23 @@ class Change:
     def __str__(self):
         size = convert_size(self.size)
         return f"{self.action} {size: >8}   {self.path}"
+
+
+@dataclass
+class GitChanges:
+    path: str
+    uncommitted: list[str]
+    unpushed: list[str]
+
+    def __str__(self):
+        lines = [f"{os.linesep}  {self.path}"]
+        if self.uncommitted:
+            lines.append("    Uncommitted changes:")
+            lines.extend(f"      {s}" for s in self.uncommitted)
+        if self.unpushed:
+            lines.append("    Unpushed commits:")
+            lines.extend(f"      {s}" for s in self.unpushed)
+        return os.linesep.join(lines)
 
 
 @dataclass
