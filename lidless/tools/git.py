@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from lidless import ui
 from lidless.models import GitChanges
 from .base_tool import BaseTool
 
@@ -11,7 +12,7 @@ class Git(BaseTool):
         Only does diff.
         """
         if any([no_prompt, print_only, diff_only]):
-            print("Options ignored.")
+            ui.out("Options ignored.")
 
         cmd_other = "git log --branches --not --remotes --decorate --oneline"
         cmd_diff = "git diff --name-only"
@@ -29,10 +30,10 @@ class Git(BaseTool):
                 ))
         if changes:
             for change in changes:
-                print(change)
-            print("")
+                ui.out(change)
+            ui.out("")
         else:
-            print(f"No unsaved changes across {len(nodes)} repos.")
+            ui.out(f"No unsaved changes across {len(nodes)} repos.")
         
     def restore(self, nodes, no_prompt, print_only, diff_only):
-        print("Not implemented yet")
+        ui.out("Not implemented yet")

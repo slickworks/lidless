@@ -1,6 +1,6 @@
 import os
 import math
-
+from lidless.exceptions import LidlessConfigError
 
 def join_paths(*paths, add_start=True, add_end=False, separator="/"):
     """
@@ -78,7 +78,8 @@ def substitute_path(path, pairs):
         if path.startswith(a):
             path = path[len(a) :]
             return join_paths(b, path)
-    return path
+    # TODO: make a more specific exception and handle upstream, also test
+    raise LidlessConfigError(f"Path not included in maps: {path}")
 
 
 def map_to_pairs(maps, invert):

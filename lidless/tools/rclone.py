@@ -4,6 +4,7 @@ from .base_rsync import RsyncBase
 
 @dataclass
 class Rclone(RsyncBase):
+    maps: dict
     cmd = "rclone sync {src} {provider}:{dest}"
     provider: str
 

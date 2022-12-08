@@ -16,7 +16,7 @@ class BaseCommand:
         self._add_arguments(sub_parser)
 
     def call(self, args):
-        print(f"running {self.cmd_name}")
+        raise NotImplementedError()
 
     def _add_arguments(self, parser):
         pass
@@ -73,7 +73,7 @@ class BaseTargetCommand(BaseCommand):
                 diff_only=args.diff_only,
             )
         else:
-            print("No nodes selected.")
+            ui.out("No nodes selected.")
 
 
 class BackupCommand(BaseTargetCommand):

@@ -3,6 +3,7 @@ from os.path import expanduser, join, exists
 import json
 import pprint
 
+from lidless import ui
 from lidless.collect import collect_nodes
 from lidless.exceptions import UserError, LidlessConfigError
 from lidless.models import Target, Node
@@ -49,7 +50,7 @@ class Config:
     def save(self):
         with open(self.config_file, "w") as fp:
             json.dump(self._data, fp, indent=4, sort_keys=True)
-        print("Config saved.")
+        ui.out("Config saved.")
 
     def target_keys(self):
         return list(self._data["targets"].keys())

@@ -6,25 +6,29 @@ from lidless.utils import convert_size, get_path_leaves
 prompt_symbol = "> "
 
 
+def out(*msg):
+    print(*msg)
+
+
 def error(msg):
-    print(msg)
+    out(msg)
     sys.exit(1)
 
 
 def user_accepts_changes(changes):
     if not (changes):
-        print("")
-        print(" No changes detected.")
-        print("")
+        out("")
+        out(" No changes detected.")
+        out("")
         return False
 
     print_changes_summary(changes)
     if prompt_yn("Do you want to list them?"):
-        print("---------------------------------------------")
-        print("")
+        out("---------------------------------------------")
+        out("")
         for change in sorted(changes, key=lambda c: c.path):
-            print(change)
-        print("")
+            out(change)
+        out("")
 
     return prompt_yn("Do you want to proceed?")
 
@@ -35,29 +39,29 @@ def print_changes_summary(changes):
     send = [c for c in changes if c.action == "send"]
     delete = [c for c in changes if c.action == "del."]
 
-    print("-------------------CHANGES-------------------")
-    print("")
-    print(
+    out("-------------------CHANGES-------------------")
+    out("")
+    out(
         f" {len(send)} changes ({total_size}) and {len(delete)}\
             deletions in {len(directories)} directories:"
     )
-    print("")
+    out("")
     for d in directories:
-        print(f"    {d}")
-    print("")
+        out(f"    {d}")
+    out("")
 
 
 def prompt_yn(msg):
     while True:
         try:
-            print(prompt_symbol + msg + " (y/n)")
+            out(prompt_symbol + msg + " (y/n)")
             selection = input(prompt_symbol).lower()[0]
             assert selection in ("y", "n")
             return selection == "y"
         except KeyboardInterrupt:
             quit()
         except AssertionError:
-            print("Enter y or n:")
+            out("Enter y or n:")
 
 
 def space_join(items):
@@ -72,10 +76,10 @@ def edit_node(node):
     while True:
         tag_str = space_join(node.tags)
         exclude_str = space_join(node.exclude)
-        print(node.path)
-        print(f"  Tags: {tag_str}")
-        print(f"  Exclude: {exclude_str}")
-        print("")
+        out(node.path)
+        out(f"  Tags: {tag_str}")
+        out(f"  Exclude: {exclude_str}")
+        out("")
         if prompt_yn("Edit tags?"):
             tag_str = prompt_text("New tags:", tag_str)
             node.tags = space_split(tag_str)
@@ -90,7 +94,7 @@ def edit_node(node):
 def prompt_text(msg, prefill=''):
     readline.set_startup_hook(lambda: readline.insert_text(prefill))
     try:
-        print(prompt_symbol + msg)
+        out(prompt_symbol + msg)
         return input(prompt_symbol)
     finally:
         readline.set_startup_hook()
