@@ -1,6 +1,13 @@
-from os.path import dirname
 import sys
+import readline
+
 from lidless.utils import convert_size, get_path_leaves
+
+prompt_symbol = "> "
+
+def error(msg):
+    print(msg)
+    sys.exit(1)
 
 
 def user_accepts_changes(changes):
@@ -39,19 +46,50 @@ def print_changes_summary(changes):
     print("")
 
 
-def error(msg):
-    print(msg)
-    sys.exit(1)
-
-
 def prompt_yn(msg):
     while True:
         try:
-            print("> " + msg + " (y/n)")
-            selection = input("> ").lower()[0]
+            print(prompt_symbol + msg + " (y/n)")
+            selection = input(prompt_symbol).lower()[0]
             assert selection in ("y", "n")
             return selection == "y"
         except KeyboardInterrupt:
             quit()
         except AssertionError:
             print("Enter y or n:")
+
+
+def space_join(items):
+    return " ".join(sorted(items))
+
+
+def space_split(items):
+    return [s for s in sorted(items.split(" ")) if len(s)]
+
+
+def edit_node(node):
+    while True:
+        tag_str = space_join(node.tags)
+        exclude_str = space_join(node.exclude)
+        print(node.path)
+        print(f"  Tags: {tag_str}")
+        print(f"  Exclude: {exclude_str}")
+        print("")
+        if prompt_yn("Edit tags?"):
+            tag_str = prompt_text("New tags:", tag_str)
+            node.tags = space_split(tag_str)
+        if prompt_yn("Edit exclude?"):
+            exclude_str = prompt_text("New exclude:", exclude_str)
+            node.exclude = space_split(exclude_str)
+        if prompt_yn("All done?"):
+            break
+    return prompt_yn("Save changes?")
+
+
+def prompt_text(msg, prefill=''):
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        print(prompt_symbol + msg)
+        return input(prompt_symbol)
+    finally:
+        readline.set_startup_hook()

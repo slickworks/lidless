@@ -193,6 +193,17 @@ Lidless runs from an JSON file located at **~/lidless/config.json** (unless you 
 
 The **roots** define points in your filesystem you want to backup. The **targets** define backup strategies (where, what and how). For now you must edit this file manually.
 
+
+
+### Config command
+
+For now it operates on current working dir and lets you:
+
+* Set labels.
+* Add exclude.
+
+
+
 #### Targets
 
 Each target defines:

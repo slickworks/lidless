@@ -27,10 +27,23 @@ class Tool:
 
 @dataclass
 class Node:
+    """
+    A node in the tree of paths.
+    """
     path: str
     tags: list[str]
     exclude: list[str]
     data: dict
+    _parent: dict
+    _relpath: str
+
+    def save(self):
+        data = {}
+        if self.tags:
+            data["tags"] = self.tags
+        if self.exclude:
+            data["exclude"] = self.exclude
+        self._parent[self._relpath] = data
 
 
 @dataclass

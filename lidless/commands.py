@@ -1,4 +1,6 @@
+import os
 from lidless.config import Config
+from lidless import ui
 
 
 class BaseCommand:
@@ -15,24 +17,21 @@ class BaseCommand:
 
     def call(self, args):
         print(f"running {self.cmd_name}")
-        print(args.__dict__)
 
     def _add_arguments(self, parser):
         pass
 
 
-class ConfigCommand(BaseCommand):
-    cmd_name = "config"
+class CwdCommand(BaseCommand):
+    cmd_name = "cwd"
     cmd_help = "Do config stuff"
 
-
-class CwdCommand(BaseCommand):
-    """
-    Command for doing things with the current working directory.
-    """
-
-    cmd_name = "cwd"
-    cmd_help = "Do cwd stuff"
+    def call(self, args):
+        cwd = os.getcwd()
+        node = self.config.get_node(cwd)
+        if ui.edit_node(node):
+            node.save()
+            self.config.save()
 
 
 class BaseTargetCommand(BaseCommand):
@@ -88,7 +87,7 @@ class RestoreCommand(BaseTargetCommand):
 
 
 commands = [
-    ConfigCommand,
+    CwdCommand,
     BackupCommand,
     RestoreCommand,
 ]

@@ -5,7 +5,7 @@ import pprint
 
 from lidless.collect import collect_nodes
 from lidless.exceptions import UserError, LidlessConfigError
-from lidless.models import Target
+from lidless.models import Target, Node
 from lidless.tools import get_tool
 
 LIDLESS_USER_DIR_ENV = "LIDLESS_USER_DIR"
@@ -48,7 +48,8 @@ class Config:
 
     def save(self):
         with open(self.config_file, "w") as fp:
-            return json.dump(self._data, fp)
+            json.dump(self._data, fp, indent=4, sort_keys=True)
+        print("Config saved.")
 
     def target_keys(self):
         return list(self._data["targets"].keys())
@@ -69,7 +70,34 @@ class Config:
 
         return Target(name=target_key, tags=tags, tool=get_tool(data), nodes=nodes)
 
-    def get_nodes(self, tags=None):
+    def get_nodes(self, tags=None) -> list[Node]:
         roots = self.roots
         default_tags = self.settings.get("default_tags", [])
         return collect_nodes(roots, tags, default_tags)
+
+    def get_node(self, path: str) -> Node:
+        """
+        Returns an editable Node by path.
+        """
+        matches = []
+        for node in self.get_nodes():
+            if node.path == path:
+                return node
+            if path.startswith(node.path):
+                matches.append(node)
+        if matches:
+            matches.sort(key=lambda x: len(x.path), reverse=True)
+            closest = matches[0]
+            relpath = path[len(closest.path):]
+            parent = closest._parent[closest._relpath]
+        else:
+            relpath = path
+            parent = self.roots
+        return Node(
+            path=path,
+            tags=[],
+            exclude=[],
+            data={},
+            _parent=parent,
+            _relpath=relpath,
+        )

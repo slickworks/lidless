@@ -18,7 +18,7 @@ class NodeCollector:
         self,
         node,
         base_path=None,
-        parent_path="",
+        parent_path=""
     ):
         """
         Recursive function which walks down tree of nodes.
@@ -34,7 +34,9 @@ class NodeCollector:
                             path=node_path,
                             tags=node_tags,
                             exclude=self._get_exclude(node_data),
-                            data={},
+                            data={}, # TODO: decide what to do with this
+                            _parent=node,
+                            _relpath=path,
                         )
                     )
                 self._collect(
