@@ -1,16 +1,49 @@
+import os
 from dataclasses import dataclass
-from lidless.tools import BaseTool
+from lidless.utils import convert_size
+
+
+class Tool:
+    """
+    Subclasses must:
+        - Be dataclasses.
+        - Specify own fields.
+        - Implement public methods using same signatures.
+    """
+    cmd = "echo {src} && echo {dest} && ech {opts}"
+
+    def _get_cmd(self, src, dest, opts):
+        return self.cmd.format(src=src, dest=dest, opts=opts)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    def backup(self, nodes, no_prompt, print_only, diff_only):
+        raise NotImplementedError()
+
+    def restore(self, nodes, no_prompt, print_only, diff_only):
+        raise NotImplementedError()
 
 
 @dataclass
 class Node:
+    """
+    A node in the tree of paths.
+    """
     path: str
-    dest: str
+    tags: list[str]
     exclude: list[str]
+    data: dict
+    _parent: dict
+    _relpath: str
 
-    # @property
-    # def exclude_file(self):
-    #     return self.config.get_exclude_file(self.path, self.exclude)
+    def save(self):
+        data = {}
+        if self.tags:
+            data["tags"] = self.tags
+        if self.exclude:
+            data["exclude"] = self.exclude
+        self._parent[self._relpath] = data
 
 
 @dataclass
@@ -21,7 +54,28 @@ class Change:
 
     path: str
     action: str
+    size: int
 
+    def __str__(self):
+        size = convert_size(self.size)
+        return f"{self.action} {size: >8}   {self.path}"
+
+
+@dataclass
+class GitChanges:
+    path: str
+    uncommitted: list[str]
+    unpushed: list[str]
+
+    def __str__(self):
+        lines = [f"{os.linesep}  {self.path}"]
+        if self.uncommitted:
+            lines.append("    Uncommitted changes:")
+            lines.extend(f"      {s}" for s in self.uncommitted)
+        if self.unpushed:
+            lines.append("    Unpushed commits:")
+            lines.extend(f"      {s}" for s in self.unpushed)
+        return os.linesep.join(lines)
 
 
 @dataclass
@@ -29,29 +83,8 @@ class Target:
     """
     A backup target.
     """
+
     name: str
-    dest: str
     tags: list[str]
-    tool: BaseTool
+    tool: Tool
     nodes: list[Node]
-
-    # exclude: list[str]
-
-    # def __init__(self, config, name, tool, nodes) -> None:
-    #     self.config = config
-    #     self.name = name
-    #     self.tool = tool
-    #     self.changes = []
-
-    def find_changes(self) -> None:
-        for node in self.nodes:
-            self._add_changes(node, node.exclude_file)
-            for save in node.save:
-                self._add_changes(save, save.exclude_file)
-
-    def sync(self):
-        pass
-
-    def _add_changes(self, path, exclude_file):
-        changes = self.tool.diff(path, exclude_file)
-        self.changes.extend(changes)

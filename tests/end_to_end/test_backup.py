@@ -3,7 +3,6 @@ from .base import BaseEndToEndWithTarget, DEST_DIR
 
 
 class TestBackup(BaseEndToEndWithTarget):
-
     @pytest.fixture
     def root(self, fileset1):
         root = self.create_root("foo")
@@ -14,11 +13,7 @@ class TestBackup(BaseEndToEndWithTarget):
 
     def test_print_only(self, root):
         output = self.call(f"backup {self.target_key} --print-only")
-        expected = [
-            "rsync",
-            root,
-            DEST_DIR
-        ]
+        expected = ["rsync", root, DEST_DIR]
         for s in expected:
             self.assert_output_contains(output, s)
         assert self.dest_contents() == []

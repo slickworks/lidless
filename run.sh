@@ -6,12 +6,12 @@ set -euo pipefail
 # Set PYTHON to the LIDLESS_PYTHON env var or default to python3.
 PYTHON=${LIDLESS_PYTHON:=python3}
 
-# Print message and exit if chosen python is older than 3.6 or not found at all.
+# Print message and exit if chosen python is older than 3.7, or not found at all.
 if ! $PYTHON -c 'import sys; assert sys.version_info >= (3,6)' &> /dev/null; then
   echo ""
   echo " ----------------------------------ERROR----------------------------------"
   echo ""
-  echo " Lidless requires Python 3.6 or above."
+  echo " Lidless requires Python 3.7 or above."
   echo ""
   echo " Install a compatible version and point env var LIDLESS_PYTHON to it, e.g."
   echo ""

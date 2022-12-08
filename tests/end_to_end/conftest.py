@@ -9,6 +9,7 @@ def fileset1():
     foo/foo.txt
     """
 
+
 @pytest.fixture
 def fileset2():
     return """

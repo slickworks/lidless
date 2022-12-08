@@ -1,32 +1,100 @@
 # Lidless
 
-*A backup tool for devs.*
+*The all-seeing backup tool.*
 
 ## Overview
 
-Lidless helps you create a personal backup strategy using rsync, rclone, git and other tools.
+Lidless lets you define a backup strategy using [rsync](https://rsync.samba.org/), [rclone](https://rclone.org/) and [git](https://git-scm.com/) from a single config file.
 
-It exists because even with those tools, backups are difficult:
+### Why do we need this?
 
-* We want to exclude directories
-* 
+Maintaining a full up-to-date backup of a developer's hard drives is difficult:
 
-As a developer I want the ability to:
+* Some things we don't want to backup:
+  * Virtual environments, Docker images, binaries and other things we can rebuild easily.
+  * Git repositories, because they are already backed up*.
+* Some directories we want to backup are nested inside others that we don't:
+  * gitignored config files inside a repo.
+  * Application caches in the home drive.
+* Some data is a bit more complex to backup:
+  * Databases need dumped first.
+  * Sensitive data may need encrypted.
+* Some data is a bit more complex to restore:
+  * Clone git repositories to the same paths as your old machine.
+  * We don't want to blindly overwrite config files (e.g. .bashrc) on a new machine.
 
-* Backup my data to multiple remote locations using rsync or rclone.
-* Exclude directories which are git repos as they are already backed up.
-* Include some files from repos (e.g. gitignored config).
-* Be told if I am about to backup files I don't want to backup.
-* Tell if any repos are not fully backed up (unpushed commits).
-* Run a selective backup (I'm in an airport, and know what I've changed).
-* Easily rebuild my hard drive from all those sources (the whole point of backups)
-* Manage all the above easily and centrally.
+As useful as tools like Dropbox are, they just don't support these requirements, and we need something more.
 
-Lidless is a very simple CLI tool which does all this.
+\* *Unless there are unpushed commits, in which case we want to know! See below...*
+
+### Features
+
+Include:
+
+
+
+* Some things need processing first (e.g. database dumps, zipping and encrypting sensitive data).
+
+If you're serious about data:
+
+* You backup to multiple providers.
+* You encrypt some files.
+* You use a USB drive for on-the-go backups when there's no Internet.
+
+And of course, we also need control over how to restore:
+
+* Just the things we need to work (e.g. a temporary machine).
+* Without overwriting config files (e.g. .bashrc) on a new machine.
+
+Although Dropbox is great, it can't handle the *all* above requirements.
+
+
+
+##### Granular inclusion
+
+Lidless makes it easy to say:
+
+* Include a directory in a backup.
+* But exclude some subdirectories (e.g. a git repository - because that's backed up elsewhere).
+* But include subdirectories in those (e.g. gitignored .env files - because we want to keep those).
+
+##### Multiple destinations
+
+You can easily back up filesets to multiple destinations, e.g.
+
+* To an USB drive using rsync.
+* To a private server using rsync.
+* To a cloud provider (drive, mega etc) using rclone.
+
+##### Flexible configuration
+
+You might want to:
+
+* Backup slightly different filesets to destinations.
+* Restore certain files to a different location than where they came from (e.g. you don't want to override your .bashrc file on a new machine, but might want to copy it somewhere to compare)
+
+##### Handle git repositories
+
+You probably don't want to backup your git repositories, but you might want to:
+
+* See at a glance which repositories have unpushed commits.
+* Restore repositories to the same location on a new machine.
+
+Lidless has a special "tool "for that, but you can write your own quite easily.
+
+##### Previews
+
+Previews help you see if you're about to copy or delete files you didn't intend to. You can explored these interactively to narrow in on the changes you care about.
 
 ## Installation
 
-Lidless only works on Linux/MacOS (Windows support is easy enough to add) and requires Python 3.6 or above.
+#### Prerequisites
+
+You need:
+
+* Linux/MacOS.
+* Python 3.7 or above (see below for help with this).
+* Whichever tools you are going to use: rsync, rclone, git etc...
 
 #### Running Lidless
 
@@ -37,11 +105,11 @@ git clone git@github.com:slickworks/lidless.git
 ./lidless/run.sh
 ```
 
-If you have Python 3.6 or above you don't need to do anything else. 
+If you have Python 3.7 or above you don't need to do anything else. 
 
-#### Python compatibilyt
+#### Python versions
 
-If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.6 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
+If you don't have Python3, go ahead and install the latest version. If your OS comes Python3 which is older than 3.7 then you need to install a more recent version alongside it (never change your system Python) and I recommend using [pyenv](https://github.com/pyenv/pyenv) for that. Once you have installed a new Python version using pyenv, get the permanent path to it like so:
 
 ```bash
 $ pyenv shell 3.10.4
@@ -125,6 +193,17 @@ Lidless runs from an JSON file located at **~/lidless/config.json** (unless you 
 
 The **roots** define points in your filesystem you want to backup. The **targets** define backup strategies (where, what and how). For now you must edit this file manually.
 
+
+
+### Config command
+
+For now it operates on current working dir and lets you:
+
+* Set labels.
+* Add exclude.
+
+
+
 #### Targets
 
 Each target defines:
@@ -138,9 +217,11 @@ Here for example we define two targets. One for an external hard drive, another 
 ```json
 {
   "targets": {
-    "my-hdd": {
+    "hdd": {
       "tool": "rsync",
-      "dest": "/mnt/ext-hd2"
+      "maps": {
+          "/home/me/projects": "/mnt/ext-hd2"
+      }
     },
     "mega": {
       "tool": "rclone",
@@ -172,12 +253,8 @@ If you have multiple top level entries, you must specify the destination on the 
 ```json
 {
   "roots": {
-    "/projects": {
-      "dest": "projects",
-    },
-    "/home/andrew": {
-      "dest": "home",
-    }
+    "/projects": {},
+    "/home/andrew": {}
   }
 }
 ```
@@ -190,7 +267,6 @@ You can nest paths within other paths:
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
        "/project-1/code": {}
     }
   }
@@ -223,11 +299,9 @@ You can add tags to paths, which lets you control which directories are included
   "roots": {
     "/projects": {
       "tags": ["cloud"],
-      "dest": "projects",
     },
     "/home/andrew": {
       "tags": ["cloud", "personal"],
-      "dest": "home",
     }
   }
 }
@@ -240,7 +314,6 @@ You can then tell targets which tags to include:
   "targets": {
     "my-hdd": {
       "tool": "rsync",
-      "dest": "/mnt/ext-hd2",
       "tags": ["personal"]
     },
     "mega": {
@@ -281,7 +354,6 @@ Let's look at how default tags and nested directories interact to allow us to ex
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
         "/project-1/code": {
           "tags": ["git"],
           "/settings": {}
@@ -322,7 +394,6 @@ You can add exclude patterns like so:
 {
   "roots": {
     "/projects": {
-      "dest": "projects",
       "exclude": ["*.pyc"]
     }
   }
@@ -331,7 +402,7 @@ You can add exclude patterns like so:
 
 You can also set an exclude_from in defaults, in a target, or a node.
 
-```
+```json
 {
   "defaults": {
     "exclude_from": "path/to/file1"
@@ -406,8 +477,13 @@ These commands update options in the config file for the current working directo
 
 These commands work with other aspects of the config. To be defined.
 
+## Learning
 
-## Development
+This project only has ~500 lines of code, yet shows several cool things you can do with Python and Bash that you can use in your own projects.
+
+Start with [run.sh](run.sh) and then onto [lidless/\_\_main\_\_.py](lidless/__main__.py]) and just keep following the code. If you are interested in creating your own commands, look at Turboshell.
+
+## Contributing
 
 Run tests with:
 

@@ -14,7 +14,7 @@ class TestTopLevelArgs(BaseEndToEnd):
             lines = pprint.pformat(output)
             raise AssertionError(f"Output did not display help: {lines}")
         return output
-    
+
     def test_with_help(self):
         self.assert_displays_help("help")
 
@@ -27,4 +27,6 @@ class TestTopLevelArgs(BaseEndToEnd):
 
     def test_with_target_cmd_with_missing_target(self):
         output = self.assert_displays_help("backup")
-        self.assert_output_contains(output, "the following arguments are required: target")
+        self.assert_output_contains(
+            output, "the following arguments are required: target"
+        )
