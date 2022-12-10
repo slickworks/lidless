@@ -2,6 +2,7 @@ import os
 import math
 from lidless.exceptions import LidlessConfigError
 
+
 def join_paths(*paths, add_start=True, add_end=False, separator="/"):
     """
     Joins paths with single instance of separator regardless of whether the
@@ -45,7 +46,11 @@ def get_path_leaves(paths):
     remove = set()
 
     for path in paths:
-        if os.path.isdir(path):
+
+        # TODO: this won't work as it make a directory deleted.
+        # if os.path.isdir(path):
+        # Maybe need to change strategy to find unique common paths
+        if not "." in path:
             unique.add(path)
 
     for path in unique:

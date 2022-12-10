@@ -1,8 +1,6 @@
 import sys
 import readline
 
-from lidless.utils import convert_size, get_path_leaves
-
 prompt_symbol = "> "
 
 
@@ -13,42 +11,6 @@ def out(*msg):
 def error(msg):
     out(msg)
     sys.exit(1)
-
-
-def user_accepts_changes(changes):
-    if not (changes):
-        out("")
-        out(" No changes detected.")
-        out("")
-        return False
-
-    print_changes_summary(changes)
-    if prompt_yn("Do you want to list them?"):
-        out("---------------------------------------------")
-        out("")
-        for change in sorted(changes, key=lambda c: c.path):
-            out(change)
-        out("")
-
-    return prompt_yn("Do you want to proceed?")
-
-
-def print_changes_summary(changes):
-    total_size = convert_size(sum(c.size for c in changes))
-    directories = get_path_leaves(c.path for c in changes)
-    send = [c for c in changes if c.action == "send"]
-    delete = [c for c in changes if c.action == "del."]
-
-    out("-------------------CHANGES-------------------")
-    out("")
-    out(
-        f" {len(send)} changes ({total_size}) and {len(delete)}\
-            deletions in {len(directories)} directories:"
-    )
-    out("")
-    for d in directories:
-        out(f"    {d}")
-    out("")
 
 
 def prompt_yn(msg):

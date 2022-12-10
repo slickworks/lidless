@@ -1,6 +1,8 @@
-from lidless.models import Change
-from lidless.utils import get_src_and_dest, join_paths
+from typing import Optional
+
 from lidless import ui
+from lidless.models import Actions, Change
+from lidless.utils import get_src_and_dest, convert_size, get_path_leaves
 from .base_tool import BaseTool
 
 
@@ -30,20 +32,13 @@ class RsyncBase(BaseTool):
             cmds = self._get_cmds(nodes, diff_only, reverse)
             self._exec_cmds(cmds, print_only)
         else:
-            changes = self._get_changes(nodes, reverse)
-            if ui.user_accepts_changes(changes):
+            if self._accept_changes(nodes, reverse):
                 cmds = self._get_cmds(nodes, False, reverse)
                 self._exec_cmds(cmds, print_only)
 
     def _get_cmds(self, nodes, diff_only, reverse):
         cmds = []
-
-        if diff_only:
-            # Use %n rather than %f as %f prints full path for "send" but 
-            # relative paths for "del." entries. We join the base path later.
-            opts = '-ain --out-format="%o %l %n"'
-        else:
-            opts = "-az"
+        opts = self._get_cmd_opts(diff_only, reverse)
 
         for node in nodes:
             src, dest = get_src_and_dest(node.path, self.maps, reverse)
@@ -54,12 +49,65 @@ class RsyncBase(BaseTool):
 
         return cmds
 
+    def _get_cmd_opts(self, diff_only, reverse):
+        raise NotImplementedError()
+
+    def _accept_changes(self, nodes, reverse):        
+        changes = self._get_changes(nodes, reverse)
+        if not (changes):
+            ui.out("")
+            ui.out(" No changes detected.")
+            ui.out("")
+            return False
+
+        self.print_changes_summary(changes)
+        if ui.prompt_yn("Do you want to list them?"):
+            ui.out("---------------------------------------------")
+            ui.out("")
+            for change in sorted(changes, key=lambda c: c.path):
+                ui.out(change)
+            ui.out("")
+
+        return ui.prompt_yn("Do you want to proceed?")
+
+    def print_changes_summary(self, changes):
+        total_size = convert_size(sum(c.size for c in changes))
+        directories = get_path_leaves(c.path for c in changes)
+        copy = [c for c in changes if c.action == Actions.copy]
+        delete = [c for c in changes if c.action == Actions.delete]
+        unknown = [c for c in changes if c.action == Actions.unknown]
+
+        ui.out("-------------------CHANGES-------------------")
+        ui.out("")
+
+        # actions = set(c.action for c in changes)
+        # for action in actions:
+        #     these = [c for c in changes if c.action == action]
+        #     ui.out(f" {action}: {len(these)}")
+
+        ui.out(f" Copy: {len(copy)}")
+        ui.out(f" Delete: {len(delete)}")
+        ui.out(f" Other: {len(unknown)}")
+
+        #  ({total_size})
+
+        ui.out(
+            f" {len(copy)} changes ({total_size}) and {len(delete)}\
+                deletions in {len(directories)} directories:"
+        )
+        ui.out("")
+        for d in directories:
+            ui.out(f"    {d}")
+        ui.out("")
+
     def _get_changes(self, nodes, reverse):
         changes = []
         for node, cmd in zip(nodes, self._get_cmds(nodes, True, reverse)):
-            for change_output in self._get_output(cmd):
-                if change_output:
-                    action, size, path = change_output.split(" ", maxsplit=2)
-                    path = join_paths(node.path, path)
-                    changes.append(Change(action=action, size=int(size), path=path))
+            for output in self._get_output(cmd):
+                change = self._parse_output(node, output)
+                if change:
+                    changes.append(change)
         return changes
+
+    def _parse_output(self, nodes, output) -> Optional[Change]:
+        raise NotImplementedError()

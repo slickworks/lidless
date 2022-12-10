@@ -1,5 +1,7 @@
 import os
+from typing import Optional
 from dataclasses import dataclass
+
 from lidless.utils import convert_size
 
 
@@ -46,6 +48,12 @@ class Node:
         self._parent[self._relpath] = data
 
 
+class Actions:
+    copy = "copy"
+    delete = "delete"
+    unknown = "unknown"
+
+
 @dataclass
 class Change:
     """
@@ -54,10 +62,13 @@ class Change:
 
     path: str
     action: str
-    size: int
+    size: Optional[int] = 0
+    size_str: Optional[str] = None
 
     def __str__(self):
-        size = convert_size(self.size)
+        size = self.size_str
+        if not size:
+            size = convert_size(self.size)
         return f"{self.action} {size: >8}   {self.path}"
 
 

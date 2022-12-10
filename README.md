@@ -29,27 +29,6 @@ As useful as tools like Dropbox are, they just don't support these requirements,
 
 ### Features
 
-Include:
-
-
-
-* Some things need processing first (e.g. database dumps, zipping and encrypting sensitive data).
-
-If you're serious about data:
-
-* You backup to multiple providers.
-* You encrypt some files.
-* You use a USB drive for on-the-go backups when there's no Internet.
-
-And of course, we also need control over how to restore:
-
-* Just the things we need to work (e.g. a temporary machine).
-* Without overwriting config files (e.g. .bashrc) on a new machine.
-
-Although Dropbox is great, it can't handle the *all* above requirements.
-
-
-
 ##### Granular inclusion
 
 Lidless makes it easy to say:
@@ -193,16 +172,12 @@ Lidless runs from an JSON file located at **~/lidless/config.json** (unless you 
 
 The **roots** define points in your filesystem you want to backup. The **targets** define backup strategies (where, what and how). For now you must edit this file manually.
 
-
-
-### Config command
+### Cwd command
 
 For now it operates on current working dir and lets you:
 
 * Set labels.
 * Add exclude.
-
-
 
 #### Targets
 
@@ -468,14 +443,6 @@ python -m lidless backup <target> --print-cmds
 This option disables the prompt, so `--no-prompt` has no effect if included. If used in combination with `--diff` it will print the commands used to produce the diff.
 
 Bear in mind that tools (including **rsync** and **rclone**) apply additional formatting to the diff returned by those commands, so running the printed commands independently will not produce the same output.
-
-### Path commands
-
-These commands update options in the config file for the current working directory. To be defined.
-
-### Config commands
-
-These commands work with other aspects of the config. To be defined.
 
 ## Learning
 

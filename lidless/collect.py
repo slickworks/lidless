@@ -34,7 +34,7 @@ class NodeCollector:
                             path=node_path,
                             tags=node_tags,
                             exclude=self._get_exclude(node_data),
-                            data={}, # TODO: decide what to do with this
+                            data={}, # TODO: decide what to do with this. Maybe _raw?
                             _parent=node,
                             _relpath=path,
                         )
