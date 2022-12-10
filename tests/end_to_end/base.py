@@ -1,81 +1,113 @@
 import os
-from os.path import dirname, join
 import glob
-import unittest
-import json
+import pprint
 import shutil
+import subprocess
 
-
-# TODO: set LIDLESS_SYNC_SAFE_TARGET and assest it is set
-
-from lidless.main import cmd_backup
-
-from lidless.tools import Rsync
+from lidless import Config
 from lidless.utils import join_paths, create_file, create_dir
-
-# assert Rsync.
-
-from tests.common import TestBase, TMP_DIR, SRC_DIR, DEST_DIR
+from tests.base import BaseAll, DEST_DIR, TMP_DIR, SRC_DIR, ROOT
 
 
-def local(path):
-    return join(TMP_DIR, path)
+class DirUtils:
+    def clean_lines(self, file_list_str) -> list[str]:
+        lines = []
+        for line in file_list_str.split(os.linesep):
+            line = line.strip()
+            if len(line):
+                lines.append(line)
+        lines.sort()
+        return lines
+
+    def create_dir_contents(self, base, file_list_str) -> None:
+        for line in self.clean_lines(file_list_str):
+            path = join_paths(base, line)
+            if "." in line:
+                create_file(path, "foo")
+            else:
+                create_dir(path)
+
+    def read_dir_contents(self, path) -> list[str]:
+        lines = glob.glob("**/*", root_dir=path, recursive=True)
+        lines.sort()
+        return lines
 
 
-def clean_lines(file_list_str) -> list[str]:
-    lines = []
-    for line in file_list_str.split(os.linesep):
-        line = line.strip() 
-        if len(line):
-            lines.append(line)
-    lines.sort()
-    return lines
-
-
-def create_dir_contents(base, file_list_str) -> None:
-    for line in clean_lines(file_list_str):
-        path = join_paths(base, line)
-        if "." in line:
-            create_file(path, "foo")
-        else:
-            create_dir(path)
-
-
-def read_dir_contents(path) -> list[str]:
-    lines = glob.glob("**/*", root_dir=path, recursive=True)
-    lines.sort()
-    return lines
-
-
-class EndToEndTest(TestBase):
-    config_file = {}
-
-    # @classmethod
-    # def setUpClass(cls):
-    #     os.makedirs(CACHE_DIR, exist_ok=True)
-    #     with open(CONFIG_FILE, "w") as fp:
-    #         json.dump(cls.config_file, fp, indent=4)
-        
-    # @classmethod
-    # def tearDownClass(cls):
-    #     os.rmdir(CACHE_DIR)
-
-    def setUp(self):
+class BaseEndToEnd(BaseAll, DirUtils):
+    def setup_method(self):
+        super().setup_method()
         os.makedirs(TMP_DIR, exist_ok=True)
-        super().setUp()
 
-    def tearDown(self):
+    def save_config(self):
+        config = self.get_config()
+        config.save()
+
+    def teardown_method(self):
         shutil.rmtree(TMP_DIR)
 
-    def setSrcDir(self, file_list_str):
-        create_dir_contents(SRC_DIR, file_list_str)
+    def create_src_dir(self, file_list_str):
+        self.create_dir_contents(SRC_DIR, file_list_str)
 
-    def setDestDir(self, file_list_str):
-        create_dir_contents(DEST_DIR, file_list_str)
+    def create_dest_dir(self, file_list_str):
+        self.create_dir_contents(DEST_DIR, file_list_str)
 
-    def cmd_backup(self, *args, **kwargs):
-        # TODO: check that paths are in tmp dir for safety?
-        cmd_backup(self.ctrl, *args, **kwargs)
+    def dest_contents(self):
+        return self.read_dir_contents(DEST_DIR)
 
-    def assertDest(self, file_list_str):
-        self.assertEqual(read_dir_contents(DEST_DIR), clean_lines(file_list_str))
+    def safety_check(self):
+        """
+        Checks the config as it will be loaded by command and ensures all collected
+        directories are in TMP dir.
+        """
+        config = Config(TMP_DIR)
+
+        def ensure(node, att, correct):
+            value = getattr(node, att)
+            if not value.startswith(correct):
+                raise AssertionError(
+                    f"Node {att} does not start with {correct}:\
+                    {os.linesep}    {value}"
+                )
+
+        for target_key in config.target_keys():
+            target = config.get_target(target_key)
+            for node in target.nodes:
+                ensure(node, "path", SRC_DIR)
+
+    def call(self, command, check=True):
+        """Calls lidless and returns output as list of strings."""
+        os.chdir(ROOT)
+        if check:
+            self.safety_check()
+        command = f"python -m lidless {command}"
+        out = subprocess.getoutput(command)
+        return out.split(os.linesep)
+
+    def lines_contain(self, lines, contents):
+        for line in lines:
+            if contents in line:
+                return True
+        return False
+
+    def assert_output_contains(self, output, contents):
+        if not self.lines_contain(output, contents):
+            lines = pprint.pformat(output)
+            raise AssertionError(
+                f"Output does not have expected contents.\n\
+                Contents: '{contents}'.\n\
+                Output: {lines}"
+            )
+        return output
+
+
+class BaseEndToEndWithTarget(BaseEndToEnd):
+    """
+    Remember to self.save_config() before self.call()
+    """
+
+    target_key = "ext"
+    target_tag = "foo"
+
+    def setup_method(self):
+        super().setup_method()
+        self.targets[self.target_key] = self.create_target(tags=[self.target_tag])
